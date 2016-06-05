@@ -85,7 +85,13 @@
       <Filter>Header Files\Shapes</Filter>
     </ClInclude>
     <ClInclude Include="CustomPhysicsScene.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Header Files\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Header Files\helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -123,7 +129,13 @@
       <Filter>Source Files\Shapes</Filter>
     </ClCompile>
     <ClCompile Include="CustomPhysicsScene.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Plane.cpp">
+      <Filter>Source Files\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files\Helpers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

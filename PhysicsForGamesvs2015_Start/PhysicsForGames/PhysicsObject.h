@@ -7,6 +7,7 @@ enum ShapeType
 	PLANE = 0,
 	SPHERE = 1,
 	BOX = 2,
+	NUMBERSHAPE = 3,
 };
 
 class PhysicsObject

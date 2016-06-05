@@ -5,6 +5,7 @@
 #include "Gizmos.h"
 #include "CustomPhysicsScene.h"
 #include "Sphere.h"
+#include "Plane.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -225,6 +226,11 @@ void Physics::SetUpCustomPhysics()
 
 	newBall = new Sphere(glm::vec3(-2.2, 1, 0), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1));
 	m_customPhysicsScene->addActor(newBall);
+
+	Plane* newPlane;
+	newPlane = new Plane(glm::vec3(1),glm::vec3(1,-1,1),glm::vec4(1,1,1,1),1);
+
+	m_customPhysicsScene->addActor(newPlane);
 }
 
 

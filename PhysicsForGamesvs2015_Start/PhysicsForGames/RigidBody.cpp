@@ -21,6 +21,7 @@ RigidBody::~RigidBody()
 
 void RigidBody::Update(glm::vec3 gravity, float timeStep)
 {
+	m_velocity += m_acceleration * timeStep;
 	m_velocity += gravity * timeStep;
 	m_position += m_velocity;
 }
@@ -34,8 +35,7 @@ void RigidBody::ApplyForce(glm::vec3 force)
 {
 	if (force != glm::vec3(0) && m_mass != 0)
 	{
-		glm::vec3 accelaration = force / m_mass;
-		m_velocity += accelaration;
+		m_acceleration += force / m_mass;
 	}
 }
 

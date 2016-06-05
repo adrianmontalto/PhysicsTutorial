@@ -57,8 +57,11 @@
 
 	void CustomPhysicsScene::CheckForInput()
 	{
+		Sphere* sphere1 = dynamic_cast<Sphere*>(m_actors[0]);
+		Sphere* sphere2 = dynamic_cast<Sphere*>(m_actors[1]);
+
 		if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A))
 		{
-			//m_actors[0]->ApplyForceToActor(m_actors[1]);
+			sphere1->ApplyForceToActor(sphere2,glm::vec3(0.01f,0.0f,0.0f));
 		}
 	}
