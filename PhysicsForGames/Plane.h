@@ -6,6 +6,7 @@ class Plane :public PhysicsObject
 public:
 	glm::vec3 m_normal;//the normal of the plane
 	float m_distance;//the length and width of plane
+
 	//default constructor
 	Plane();
 	//constructor that takes in the planes normal,colour and distance
