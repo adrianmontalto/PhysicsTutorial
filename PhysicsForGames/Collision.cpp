@@ -71,6 +71,22 @@ void Collision::CheckForCollision()
 
 	if (overlap < 0)
 	{
+		float totalMass = plane->m_mass + aabb->m_mass;
+		float planeMassRatio = plane->m_mass / totalMass;
+		float aabbMassRatio = aabb->m_mass / totalMass;
+
+		glm::vec3 seperationVector = plane->m_normal * -overlap;
+		aabb->m_position += (seperationVector * planeMassRatio);
+
+		const float coefficientOfRestitution = 0.5f;
+		glm::vec3 relativeVel = aabb->m_velocity - plane->m_velocity;
+		float velocityAlongNormal = glm::dot(relativeVel, plane->m_normal);
+		float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
+		impulseAmount /= 1 / plane->m_mass + 1 / aabb->m_mass;
+
+		glm::vec3 impulse = impulseAmount * plane->m_normal;
+		plane->m_velocity += (1 / plane->m_mass * -impulse);
+		aabb->m_velocity += (1/aabb->m_mass * +impulse);
 		
 		return true;
 	}
@@ -161,8 +177,23 @@ void Collision::CheckForCollision()
 	float overlap = glm::length(clampedDistance) - sphere->m_radius;
 	if (overlap < 0)
 	{
-		sphere->m_velocity = glm::vec3(0, 0, 0);
-		aabb->m_velocity = glm::vec3(0, 0, 0);
+		float totalMass = aabb->m_mass + sphere->m_mass;
+		float massRatio1 = aabb->m_mass / totalMass;
+		float massRatio2 = sphere->m_mass / totalMass;
+
+		glm::vec3 seperationVector = glm::normalize(clampedDistance) * -overlap;
+		aabb->m_position += (-seperationVector * massRatio2);
+		sphere->m_position += (seperationVector * massRatio1);
+
+		const float coefficientOfRestitution = 0.5f;
+		glm::vec3 relativeVel = sphere->m_velocity - aabb->m_velocity;
+		float velocityAlongNormal = glm::dot(relativeVel,glm::normalize(clampedDistance));
+		float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
+		impulseAmount /= 1 / aabb->m_mass + 1 / sphere->m_mass;
+
+		glm::vec3 impulse = impulseAmount * glm::normalize(clampedDistance);
+		aabb->m_velocity += (1 / aabb->m_mass * -impulse);
+		sphere->m_velocity += (1 / sphere->m_mass * +impulse);
 		return true;
 	}
 
@@ -242,6 +273,24 @@ void Collision::CheckForCollision()
 		 else if (yOverlap == minOverlap) seperationNormal.y = std::signbit(distanceBetweenBoxes.y) ? -1.0f : 1.0f;
 		 else if (zOverlap == minOverlap) seperationNormal.z = std::signbit(distanceBetweenBoxes.z) ? -1.0f : 1.0f;
 
+		 float totalMass = axisAlignedBoundingBox1->m_mass + axisAlignedBoundingBox2->m_mass;
+		 float massRatio1 = axisAlignedBoundingBox1->m_mass / totalMass;
+		 float massRatio2 = axisAlignedBoundingBox2->m_mass / totalMass;
+
+		 glm::vec3 seperationVector = seperationNormal * -minOverlap;
+		 axisAlignedBoundingBox1->m_position += (-seperationVector * massRatio2);
+		 axisAlignedBoundingBox2->m_position += (seperationVector * massRatio1);
+
+		 const float coefficientOfRestitution = 0.5f;
+
+		 glm::vec3 relativeVel = axisAlignedBoundingBox2->m_velocity - axisAlignedBoundingBox1->m_velocity;
+		 float velocityAlongNormal = glm::dot(relativeVel, seperationNormal);
+		 float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
+		 impulseAmount /= 1 / axisAlignedBoundingBox1->m_mass + 1 / axisAlignedBoundingBox2->m_mass;
+
+		 glm::vec3 impulse = impulseAmount * seperationNormal;
+		 axisAlignedBoundingBox1->m_velocity += (1 / axisAlignedBoundingBox1->m_mass * -impulse);
+		 axisAlignedBoundingBox2->m_velocity += (1 / axisAlignedBoundingBox2->m_mass * +impulse);
 		 return true;
 	 }
 	 return false;

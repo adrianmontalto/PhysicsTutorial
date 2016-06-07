@@ -6,10 +6,7 @@ class RigidBody :public PhysicsObject
 {
 public:
 	glm::vec3 m_position;//the rigid bodies position
-	glm::vec3 m_velocity;//the velocity of the rigid body
 	glm::vec3 m_acceleration;//the acceleration of the object
-
-	float m_mass;//the mass of the object
 	glm::quat m_rotation;//the rotation of the object
 
 	//default constructor

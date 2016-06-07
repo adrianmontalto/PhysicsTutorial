@@ -40,9 +40,6 @@
     <Filter Include="Header Files\ParticleEmitter">
       <UniqueIdentifier>{eeff97ff-a5df-405c-8073-219d506bf680}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Physics">
-      <UniqueIdentifier>{833b77aa-3967-429e-9f15-5f443c256576}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Shapes">
       <UniqueIdentifier>{2430def5-d9a4-4f44-90fc-5d6ac9c7fdc6}</UniqueIdentifier>
     </Filter>
@@ -81,9 +78,6 @@
     <ClInclude Include="tiny_obj_loader.h">
       <Filter>Header Files\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="PhysicsObject.h">
-      <Filter>Header Files\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="RigidBody.h">
       <Filter>Header Files\Shapes</Filter>
     </ClInclude>
@@ -100,6 +94,9 @@
       <Filter>Header Files\Helpers</Filter>
     </ClInclude>
     <ClInclude Include="AABB.h">
+      <Filter>Header Files\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsObject.h">
       <Filter>Header Files\Shapes</Filter>
     </ClInclude>
   </ItemGroup>

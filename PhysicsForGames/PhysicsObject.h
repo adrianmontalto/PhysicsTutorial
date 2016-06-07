@@ -15,7 +15,9 @@ class PhysicsObject
 {
 public:
 	ShapeType m_shapeID;
+	glm::vec3 m_velocity;
 	glm::vec4 m_colour;
+	float m_mass;
 	virtual void Update(glm::vec3 gravity, float timeStep) = 0;
 	virtual void Debug() = 0;
 	virtual void MakeGizmo() = 0;

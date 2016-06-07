@@ -6,7 +6,7 @@
 
 CustomPhysicsScene::CustomPhysicsScene()
 {
-	
+	m_timeStep = 0.0f;
 }
 
 CustomPhysicsScene::~CustomPhysicsScene()
@@ -60,7 +60,7 @@ void CustomPhysicsScene::CheckForInput()
 {
 	Sphere* sphere1 = dynamic_cast<Sphere*>(m_physicObjects[0]);
 	Sphere* sphere2 = dynamic_cast<Sphere*>(m_physicObjects[1]);
-	if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A))
+	if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_Z))
 	{
 		sphere1->ApplyForceToActor(sphere2,glm::vec3(1,0,0));
 	}

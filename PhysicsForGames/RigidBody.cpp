@@ -24,7 +24,8 @@ void RigidBody::Update(glm::vec3 gravity, float timeStep)
 {
 	m_velocity += m_acceleration * timeStep;
 	m_velocity += gravity * timeStep;
-	m_position += m_velocity;
+	m_position += m_velocity * timeStep;
+	m_acceleration = glm::vec3(0);
 }
 
 void RigidBody::Debug()

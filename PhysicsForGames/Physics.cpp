@@ -216,7 +216,7 @@ void Physics::SetUpCustomPhysics()
 	//set up the custom physics scene
 	m_customPhysicsScene = new CustomPhysicsScene();
 	m_customPhysicsScene->m_gravity = glm::vec3(0,0,0);
-	m_customPhysicsScene->m_timeStep = 0.001f;
+	m_customPhysicsScene->m_timeStep = 0.2f;
 
 	//add sphere to scene
 	Sphere* newBall;
