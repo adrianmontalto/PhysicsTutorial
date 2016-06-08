@@ -18,7 +18,7 @@ Collision::~Collision()
 {
 }
 
-void Collision::CheckForCollision()
+void Collision::CheckForCustomCollision()
 {
 	int objectCount = m_customScene->m_physicObjects.size();
 	//need to check for collisions against all objects except this one.
@@ -30,14 +30,15 @@ void Collision::CheckForCollision()
 			PhysicsObject* object1 = m_customScene->m_physicObjects[outer];
 			PhysicsObject* object2 = m_customScene->m_physicObjects[inner];
 			//sets ids to that of the objects
-			int shape1ID = object1->m_shapeID;
-			int shape2ID = object2->m_shapeID;
+			int shape1ID = object1->GetShapeID();
+			int shape2ID = object2->GetShapeID();
 			//set an index using the objects shapes id
 			int functionIndex = (shape1ID * NUMBERSHAPE) + shape2ID;
 			CollisionDetectionFunction collisionFunctionPtr = CollisionFunctions[functionIndex];
 			if (collisionFunctionPtr != NULL)
 			{
 				collisionFunctionPtr(object1,object2);
+
 			}
 		}
 	}
@@ -60,34 +61,18 @@ void Collision::CheckForCollision()
 	Plane* plane = dynamic_cast<Plane*>(planeObject);
 	AABB* aabb = dynamic_cast<AABB*>(AABBObject);
 
-	glm::vec3 AABBPos = aabb->m_position;
+	glm::vec3 AABBPos = aabb->GetPosition();
 	glm::vec3 minPos = AABBPos - aabb->GetExtent();
 	glm::vec3 maxPos = AABBPos + aabb->GetExtent();
-
-	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, plane->m_normal);
-	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos,plane->m_normal);
-
+	
+	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, plane->GetNormal());
+	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos,plane->GetNormal());
+	
 	float overlap = std::min(minPointDistanceAlongPlaneNormal,maxPointDistanceAlongPlaneNormal);
-
+	
 	if (overlap < 0)
 	{
-		float totalMass = plane->m_mass + aabb->m_mass;
-		float planeMassRatio = plane->m_mass / totalMass;
-		float aabbMassRatio = aabb->m_mass / totalMass;
-
-		glm::vec3 seperationVector = plane->m_normal * -overlap;
-		aabb->m_position += (seperationVector * planeMassRatio);
-
-		const float coefficientOfRestitution = 0.5f;
-		glm::vec3 relativeVel = aabb->m_velocity - plane->m_velocity;
-		float velocityAlongNormal = glm::dot(relativeVel, plane->m_normal);
-		float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
-		impulseAmount /= 1 / plane->m_mass + 1 / aabb->m_mass;
-
-		glm::vec3 impulse = impulseAmount * plane->m_normal;
-		plane->m_velocity += (1 / plane->m_mass * -impulse);
-		aabb->m_velocity += (1/aabb->m_mass * +impulse);
-		
+		Response(plane,aabb,-overlap,plane->GetNormal());
 		return true;
 	}
 	return false;
@@ -103,8 +88,8 @@ void Collision::CheckForCollision()
 	Sphere *sphere = dynamic_cast<Sphere*>(sphereObject);
 	Plane *plane = dynamic_cast<Plane*>(planeObject);
 	 
-	glm::vec3 collisionNormal = plane->m_normal;
-	float sphereToPlane = glm::dot(sphere->m_position, plane->m_normal) - plane->m_distance;
+	glm::vec3 collisionNormal = plane->GetNormal();
+	float sphereToPlane = glm::dot(sphere->GetPosition(), plane->GetNormal()) - plane->GetDistance();
 
 	//planes are infinetly thin,double sided,objects so if we are behind it we flip the normal
 	if (sphereToPlane < 0)
@@ -118,17 +103,17 @@ void Collision::CheckForCollision()
 	{
 		//find the point where the collision occured(we need this for colision response later)
 		//the plane is always static so collision response only applies to the sphere
-		glm::vec3 planeNormal = plane->m_normal;
+		glm::vec3 planeNormal = plane->GetNormal();
 		if (sphereToPlane < 0)
 		{
 			//flip the normal if we are behind the plane
 			planeNormal *= -1;
 		}
 
-		glm::vec3 forceVector = -1 * sphere->m_mass * planeNormal 
-								*(glm::dot(planeNormal, sphere->m_velocity));
+		glm::vec3 forceVector = -1 * sphere->GetMass() * planeNormal 
+								*(glm::dot(planeNormal, sphere->GetVelocity()));
 		sphere->ApplyForce(glm::vec3(2) * forceVector);
-		sphere->m_position += collisionNormal * intersection * 0.5f;
+		sphere->AddPosition(collisionNormal * intersection * 0.5f);
 		return true;
 	}
 	return false;
@@ -142,7 +127,7 @@ void Collision::CheckForCollision()
 	glm::vec3 minPos = -aabb->GetExtent();
 	glm::vec3 maxPos = aabb->GetExtent();
 
-	glm::vec3 distance = sphere->m_position - aabb->m_position;
+	glm::vec3 distance = sphere->GetPosition() - aabb->GetPosition();
 	glm::vec3 clampedPoint = distance;
 
 	if (distance.x < minPos.x)
@@ -177,23 +162,23 @@ void Collision::CheckForCollision()
 	float overlap = glm::length(clampedDistance) - sphere->m_radius;
 	if (overlap < 0)
 	{
-		float totalMass = aabb->m_mass + sphere->m_mass;
-		float massRatio1 = aabb->m_mass / totalMass;
-		float massRatio2 = sphere->m_mass / totalMass;
+		float totalMass = aabb->GetMass() + sphere->GetMass();
+		float massRatio1 = aabb->GetMass() / totalMass;
+		float massRatio2 = sphere->GetMass() / totalMass;
 
 		glm::vec3 seperationVector = glm::normalize(clampedDistance) * -overlap;
-		aabb->m_position += (-seperationVector * massRatio2);
-		sphere->m_position += (seperationVector * massRatio1);
+		aabb->AddPosition(-seperationVector * massRatio2);
+		sphere->AddPosition(seperationVector * massRatio1);
 
 		const float coefficientOfRestitution = 0.5f;
-		glm::vec3 relativeVel = sphere->m_velocity - aabb->m_velocity;
+		glm::vec3 relativeVel = sphere->GetVelocity() - aabb->GetVelocity();
 		float velocityAlongNormal = glm::dot(relativeVel,glm::normalize(clampedDistance));
 		float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
-		impulseAmount /= 1 / aabb->m_mass + 1 / sphere->m_mass;
+		impulseAmount /= 1 / aabb->GetMass() + 1 / sphere->GetMass();
 
 		glm::vec3 impulse = impulseAmount * glm::normalize(clampedDistance);
-		aabb->m_velocity += (1 / aabb->m_mass * -impulse);
-		sphere->m_velocity += (1 / sphere->m_mass * +impulse);
+		aabb->AddVelocity(1 / aabb->GetMass() * -impulse);
+		sphere->AddVelocity(1 / sphere->GetMass() * +impulse);
 		return true;
 	}
 
@@ -209,7 +194,7 @@ void Collision::CheckForCollision()
 	 if (sphere1 != NULL && sphere2 != NULL)
 	 {
 		//gets the vector between the two spheres
-		glm::vec3 direction = sphere1->m_position - sphere2->m_position;
+		glm::vec3 direction = sphere1->GetPosition() - sphere2->GetPosition();
 		float distanceBetweenSpheres = glm::length(direction);
 		float combinedSphereRadius = sphere1->m_radius + sphere2->m_radius;
 
@@ -217,13 +202,13 @@ void Collision::CheckForCollision()
 		if (overlap < 0)
 		{
 			glm::vec3 collisionNormal = glm::normalize(direction);
-			glm::vec3 relativeVelocity = sphere1->m_velocity - sphere2->m_velocity;
+			glm::vec3 relativeVelocity = sphere1->GetVelocity() - sphere2->GetVelocity();
 			glm::vec3 collisionVector = collisionNormal *(glm::dot(relativeVelocity,collisionNormal));
-			glm::vec3 forceVector = collisionVector * 1.0f / (1 / sphere1->m_mass + 1 / sphere2->m_mass);
+			glm::vec3 forceVector = collisionVector * 1.0f / (1 / sphere1->GetMass() + 1 / sphere2->GetMass());
 			//move our spheres out of collision
 			glm::vec3 seperationVector = collisionNormal * overlap * 0.5f;
-			sphere1->m_position -= seperationVector;
-			sphere2->m_position += seperationVector;
+			sphere1->SubtractPositiion(seperationVector);
+			sphere2->AddPosition(seperationVector);
 			//use newtons third law to apply collision forces to colliding bodies.
 			sphere1->ApplyForceToActor(sphere2,forceVector * glm::vec3(2));
 
@@ -249,10 +234,10 @@ void Collision::CheckForCollision()
 	 AABB* axisAlignedBoundingBox1 = dynamic_cast<AABB*>(AABBObject1);
 	 AABB* axisAlignedBoundingBox2 = dynamic_cast<AABB*>(AABBObject2);
 
-	 glm::vec3 box1Pos = axisAlignedBoundingBox1->m_position;
+	 glm::vec3 box1Pos = axisAlignedBoundingBox1->GetPosition();
 	 glm::vec3 box1Extents = axisAlignedBoundingBox1->GetExtent();
 
-	 glm::vec3 box2Pos = axisAlignedBoundingBox2->m_position;
+	 glm::vec3 box2Pos = axisAlignedBoundingBox2->GetPosition();
 	 glm::vec3 box2Extents = axisAlignedBoundingBox2->GetExtent();
 
 	 glm::vec3 distanceBetweenBoxes = box2Pos - box1Pos;
@@ -273,25 +258,52 @@ void Collision::CheckForCollision()
 		 else if (yOverlap == minOverlap) seperationNormal.y = std::signbit(distanceBetweenBoxes.y) ? -1.0f : 1.0f;
 		 else if (zOverlap == minOverlap) seperationNormal.z = std::signbit(distanceBetweenBoxes.z) ? -1.0f : 1.0f;
 
-		 float totalMass = axisAlignedBoundingBox1->m_mass + axisAlignedBoundingBox2->m_mass;
-		 float massRatio1 = axisAlignedBoundingBox1->m_mass / totalMass;
-		 float massRatio2 = axisAlignedBoundingBox2->m_mass / totalMass;
+		 float totalMass = axisAlignedBoundingBox1->GetMass() + axisAlignedBoundingBox2->GetMass();
+		 float massRatio1 = axisAlignedBoundingBox1->GetMass() / totalMass;
+		 float massRatio2 = axisAlignedBoundingBox2->GetMass() / totalMass;
 
 		 glm::vec3 seperationVector = seperationNormal * -minOverlap;
-		 axisAlignedBoundingBox1->m_position += (-seperationVector * massRatio2);
-		 axisAlignedBoundingBox2->m_position += (seperationVector * massRatio1);
+		 axisAlignedBoundingBox1->AddPosition(-seperationVector * massRatio2);
+		 axisAlignedBoundingBox2->AddPosition(seperationVector * massRatio1);
 
 		 const float coefficientOfRestitution = 0.5f;
 
-		 glm::vec3 relativeVel = axisAlignedBoundingBox2->m_velocity - axisAlignedBoundingBox1->m_velocity;
+		 glm::vec3 relativeVel = axisAlignedBoundingBox2->GetVelocity() - axisAlignedBoundingBox1->GetVelocity();
 		 float velocityAlongNormal = glm::dot(relativeVel, seperationNormal);
 		 float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
-		 impulseAmount /= 1 / axisAlignedBoundingBox1->m_mass + 1 / axisAlignedBoundingBox2->m_mass;
+		 impulseAmount /= 1 / axisAlignedBoundingBox1->GetMass() + 1 / axisAlignedBoundingBox2->GetMass();
 
 		 glm::vec3 impulse = impulseAmount * seperationNormal;
-		 axisAlignedBoundingBox1->m_velocity += (1 / axisAlignedBoundingBox1->m_mass * -impulse);
-		 axisAlignedBoundingBox2->m_velocity += (1 / axisAlignedBoundingBox2->m_mass * +impulse);
+		 axisAlignedBoundingBox1->AddVelocity(1 / axisAlignedBoundingBox1->GetMass() * -impulse);
+		 axisAlignedBoundingBox2->AddVelocity(1 / axisAlignedBoundingBox2->GetMass() * +impulse);
 		 return true;
 	 }
 	 return false;
+ }
+
+ void Collision::Seperate(PhysicsObject* object1, PhysicsObject* object2, float overlap, glm::vec3 normal)
+ {
+	float totalMass = object1->GetMass() + object2->GetMass();
+	float massRatio1 = object1->GetMass() / totalMass;
+	float massRatio2 = object2->GetMass() / totalMass;
+
+	glm::vec3 separationVector = normal * overlap;
+	object1->AddPosition(-separationVector * massRatio2);
+	object2->AddPosition(separationVector * massRatio1);
+ }
+
+ void Collision::Response(PhysicsObject* object1, PhysicsObject* object2, float overlap, glm::vec3 normal)
+ {
+	Seperate(object1, object2, overlap, normal);
+
+	const float coefficientOfRestitution = 0.5f;
+
+	glm::vec3 relativeVel = object2->GetVelocity() - object1->GetVelocity();
+	float velocityAlongNormal = glm::dot(relativeVel, normal);
+	float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
+	impulseAmount /= 1 / object1->GetMass() + 1 / object2->GetMass();
+
+	glm::vec3 impulse = impulseAmount * normal;
+	object1->AddVelocity(1/ object1->GetMass() * -impulse);
+	object2->AddVelocity(1 / object2->GetMass() * +impulse);
  }

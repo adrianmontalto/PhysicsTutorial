@@ -6,6 +6,8 @@
 #include "CustomPhysicsScene.h"
 #include "Sphere.h"
 #include "Plane.h"
+#include "AABB.h"
+#include "Collision.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -34,6 +36,8 @@ bool Physics::startup()
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
 	SetUpCustomPhysics();
+	SetUpCustomBorders(40.0f,10.0f, glm::vec4(1, 0, 0, 1));
+	m_collisionManager = new Collision(m_customPhysicsScene);
     return true;
 }
 
@@ -74,7 +78,7 @@ bool Physics::update()
     m_camera.update(1.0f / 60.0f);
 	//UpDatePhysX(m_delta_time);
 	UpdateCustomPhysics();
-
+	//m_collisionManager->CheckForCustomCollision();
     return true;
 }
 
@@ -211,29 +215,6 @@ void Physics::SetUpPhysX()
 	m_physicsScene = m_physics->createScene(sceneDesc);
 }
 
-void Physics::SetUpCustomPhysics()
-{
-	//set up the custom physics scene
-	m_customPhysicsScene = new CustomPhysicsScene();
-	m_customPhysicsScene->m_gravity = glm::vec3(0,0,0);
-	m_customPhysicsScene->m_timeStep = 0.2f;
-
-	//add sphere to scene
-	Sphere* newBall;
-	newBall = new Sphere(glm::vec3(0,1,0),glm::vec3(0,0,0),3.0f,1.0f,glm::vec4(1,0,0,1));
-	
-	m_customPhysicsScene->AddPhysicsObject(newBall);
-
-	newBall = new Sphere(glm::vec3(-2.2,1, 0), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1));
-	m_customPhysicsScene->AddPhysicsObject(newBall);
-
-	Plane* newPlane;
-	newPlane = new Plane(glm::vec3(0,-1,0),glm::vec4(1,1,1,1),20.0f);
-
-	m_customPhysicsScene->AddPhysicsObject(newPlane);
-}
-
-
 void Physics::UpDatePhysX(float deltaTime)
 {
 	if (deltaTime <= 0)
@@ -247,10 +228,55 @@ void Physics::UpDatePhysX(float deltaTime)
 	}
 }
 
+void Physics::SetUpCustomPhysics()
+{
+	//set up the custom physics scene
+	m_customPhysicsScene = new CustomPhysicsScene();
+	m_customPhysicsScene->m_gravity = glm::vec3(0,0,0);
+	m_customPhysicsScene->m_timeStep = 0.4f;
+
+	//add sphere to scene
+	Sphere* newBall;
+	newBall = new Sphere(glm::vec3(0,1,0),glm::vec3(0,0,0),3.0f,1.0f,glm::vec4(1,0,0,1),false);
+	
+	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	newBall = new Sphere(glm::vec3(-3.2,1, 0), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
+	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	Plane* newPlane;
+	newPlane = new Plane(glm::vec3(0,-1,0),glm::vec4(1,1,1,1),20.0f,true);
+
+	m_customPhysicsScene->AddPhysicsObject(newPlane);
+}
+
 void Physics::UpdateCustomPhysics()
 {
 	m_customPhysicsScene->Update();
 	m_customPhysicsScene->UpdateGizmos();
+}
+
+void Physics::SetUpCustomBorders(float tableSize, float borderHeight, glm::vec4 colour)
+{
+	glm::vec3 position = glm::vec3(0, 0.5f, (tableSize / 2) + 1);
+	glm::vec3 extent = glm::vec3(tableSize / 2, borderHeight, 1);
+	AABB* newBox = new AABB(position,extent,colour,true);
+	m_customPhysicsScene->AddPhysicsObject(newBox);
+
+	position = glm::vec3(0,0.5f,(-tableSize / 2) -1);
+	extent = glm::vec3(tableSize / 2, borderHeight, 1);
+	AABB* newBox2 = new AABB(position, extent, colour, true);
+	m_customPhysicsScene->AddPhysicsObject(newBox2);
+
+	position = glm::vec3((tableSize / 2) - 1, 0.5f, 0);
+	extent = glm::vec3(1,borderHeight,tableSize/2);
+	AABB* newBox3 = new AABB(position, extent, colour, true);
+	m_customPhysicsScene->AddPhysicsObject(newBox3);
+
+	position = glm::vec3((-tableSize / 2) + 1, 0.5f, 0);
+	extent = glm::vec3(1, borderHeight, tableSize / 2);
+	AABB* newBox4 = new AABB(position, extent, colour, true);
+	m_customPhysicsScene->AddPhysicsObject(newBox4);
 }
 
 void Physics::SetUpVisualDebugger()

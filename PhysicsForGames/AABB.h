@@ -7,7 +7,7 @@ private:
 	glm::vec4 m_colour;
 public:
 	AABB();
-	AABB(glm::vec3 position,glm::vec3 extents,glm::vec4 colour);
+	AABB(glm::vec3 position,glm::vec3 extents,glm::vec4 colour,bool isStatic);
 	~AABB();
 	void MakeGizmo();
 	glm::vec3 GetExtent();

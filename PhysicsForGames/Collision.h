@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-
+#include "glm\vec3.hpp"
 class PhysicsObject;
 
 typedef bool(*CollisionDetectionFunction)(PhysicsObject*,PhysicsObject*);
@@ -12,7 +12,9 @@ public:
 	Collision();
 	Collision(CustomPhysicsScene* scene);
 	~Collision();
-	void CheckForCollision();
+	void CheckForCustomCollision();
+	static void Seperate(PhysicsObject* object1,PhysicsObject* object2,float overlap,glm::vec3 normal);
+	static void Response(PhysicsObject* object1, PhysicsObject* object2, float overlap, glm::vec3 normal);
 	
 private:
 	static const std::array<CollisionDetectionFunction, 9> CollisionFunctions;

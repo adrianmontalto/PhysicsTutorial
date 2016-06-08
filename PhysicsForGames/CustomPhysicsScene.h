@@ -19,6 +19,6 @@ public:
 	void UpdateGizmos();
 	void DebugScene();
 	void AddGizmos();
-	void CheckForInput();
+	void CheckForInput();	
 };
 

@@ -22,9 +22,10 @@ public:
 
 	void renderGizmos(PxScene* physics_scene);
 	void SetUpPhysX();
-	void SetUpCustomPhysics();
 	void UpDatePhysX(float deltaTime);
+	void SetUpCustomPhysics();
 	void UpdateCustomPhysics();
+	void SetUpCustomBorders(float tableSize,float borderHeight,glm::vec4 colour);
 	void SetUpVisualDebugger();
 	void SetUpTutorial1();
 
@@ -40,6 +41,7 @@ public:
 	PxDefaultAllocator m_defaultAllocatorCallback;
 	PxSimulationFilterShader m_defaultFilterShader = PxDefaultSimulationFilterShader;
     FlyCamera m_camera;
+	class Collision* m_collisionManager;
     float m_delta_time;
 };
 

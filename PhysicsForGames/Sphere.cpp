@@ -11,7 +11,7 @@ Sphere::Sphere()
 	m_shapeID = SPHERE;
 }
 
-Sphere::Sphere(glm::vec3 position, glm::vec3 velocity, float mass, float radius, glm::vec4 colour)
+Sphere::Sphere(glm::vec3 position, glm::vec3 velocity, float mass, float radius, glm::vec4 colour, bool aStatic)
 {
 	m_position = position;
 	m_velocity = velocity;
