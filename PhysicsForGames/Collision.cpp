@@ -22,9 +22,9 @@ void Collision::CheckForCustomCollision()
 {
 	int objectCount = m_customScene->m_physicObjects.size();
 	//need to check for collisions against all objects except this one.
-	for (int outer = 0; outer < objectCount - 1; ++outer)
+	for (int outer = 0; outer < 1; ++outer)
 	{
-		for (int inner = outer + 1; inner < objectCount; ++inner)
+		for (int inner = outer + 1; inner < objectCount -1; ++inner)
 		{
 			//sets the objects to the outer and inner object
 			PhysicsObject* object1 = m_customScene->m_physicObjects[outer];
@@ -201,17 +201,7 @@ void Collision::CheckForCustomCollision()
 		float overlap = distanceBetweenSpheres - combinedSphereRadius;
 		if (overlap < 0)
 		{
-			glm::vec3 collisionNormal = glm::normalize(direction);
-			glm::vec3 relativeVelocity = sphere1->GetVelocity() - sphere2->GetVelocity();
-			glm::vec3 collisionVector = collisionNormal *(glm::dot(relativeVelocity,collisionNormal));
-			glm::vec3 forceVector = collisionVector * 1.0f / (1 / sphere1->GetMass() + 1 / sphere2->GetMass());
-			//move our spheres out of collision
-			glm::vec3 seperationVector = collisionNormal * overlap * 0.5f;
-			sphere1->SubtractPositiion(seperationVector);
-			sphere2->AddPosition(seperationVector);
-			//use newtons third law to apply collision forces to colliding bodies.
-			sphere1->ApplyForceToActor(sphere2,forceVector * glm::vec3(2));
-
+			Response(sphere1,sphere2,- overlap,glm::normalize(direction));
 			return true;
 		}		
 	 }

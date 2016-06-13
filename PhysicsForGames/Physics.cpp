@@ -36,7 +36,7 @@ bool Physics::startup()
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
 	SetUpCustomPhysics();
-	SetUpCustomBorders(40.0f,10.0f, glm::vec4(1, 0, 0, 1));
+	SetUpCustomBorders(40.0f, 10.0f, glm::vec4(1, 0, 0, 1));
 	m_collisionManager = new Collision(m_customPhysicsScene);
     return true;
 }
@@ -241,7 +241,7 @@ void Physics::SetUpCustomPhysics()
 	
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
-	newBall = new Sphere(glm::vec3(-3.2,1, 0), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
+	newBall = new Sphere(glm::vec3(-8.2,1, 0), glm::vec3(0,0, 0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	Plane* newPlane;
@@ -258,25 +258,25 @@ void Physics::UpdateCustomPhysics()
 
 void Physics::SetUpCustomBorders(float tableSize, float borderHeight, glm::vec4 colour)
 {
-	glm::vec3 position = glm::vec3(0, 0.5f, (tableSize / 2) + 1);
-	glm::vec3 extent = glm::vec3(tableSize / 2, borderHeight, 1);
-	AABB* newBox = new AABB(position,extent,colour,true);
-	m_customPhysicsScene->AddPhysicsObject(newBox);
+	//glm::vec3 position = glm::vec3(0, 0.5f, (tableSize / 2) + 1);
+	//glm::vec3 extent = glm::vec3(tableSize / 2, borderHeight, 1);
+	//AABB* newBox = new AABB(position,extent,colour,true);
+	//m_customPhysicsScene->AddPhysicsObject(newBox);
 
-	position = glm::vec3(0,0.5f,(-tableSize / 2) -1);
-	extent = glm::vec3(tableSize / 2, borderHeight, 1);
-	AABB* newBox2 = new AABB(position, extent, colour, true);
-	m_customPhysicsScene->AddPhysicsObject(newBox2);
-
-	position = glm::vec3((tableSize / 2) - 1, 0.5f, 0);
-	extent = glm::vec3(1,borderHeight,tableSize/2);
-	AABB* newBox3 = new AABB(position, extent, colour, true);
-	m_customPhysicsScene->AddPhysicsObject(newBox3);
-
-	position = glm::vec3((-tableSize / 2) + 1, 0.5f, 0);
-	extent = glm::vec3(1, borderHeight, tableSize / 2);
-	AABB* newBox4 = new AABB(position, extent, colour, true);
-	m_customPhysicsScene->AddPhysicsObject(newBox4);
+	//position = glm::vec3(0,0.5f,(-tableSize / 2) - 1);
+	//extent = glm::vec3(tableSize / 2, borderHeight, 1);
+	//newBox = new AABB(position, extent, colour, true);
+	//m_customPhysicsScene->AddPhysicsObject(newBox);
+	//
+	//position = glm::vec3((tableSize / 2) + 1, 0.5f, 0);
+	//extent = glm::vec3(1,borderHeight,tableSize/2);
+	//newBox = new AABB(position, extent, colour, true);
+	//m_customPhysicsScene->AddPhysicsObject(newBox);
+	//
+	//position = glm::vec3((-tableSize / 2) - 1, 0.5f, 0);
+	//extent = glm::vec3(1, borderHeight, tableSize / 2);
+	//newBox = new AABB(position, extent, colour, true);
+	//m_customPhysicsScene->AddPhysicsObject(newBox);
 }
 
 void Physics::SetUpVisualDebugger()

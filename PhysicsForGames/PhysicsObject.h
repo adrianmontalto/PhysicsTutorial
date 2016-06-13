@@ -8,7 +8,8 @@ enum ShapeType
 	SPHERE = 1,
 	BOX = 2,
 	AXISALIGNEDBOX = 3,
-	NUMBERSHAPE = 4,
+	JOINT = 4,
+	NUMBERSHAPE = 5,
 };
 
 class PhysicsObject
