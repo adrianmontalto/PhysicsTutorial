@@ -237,21 +237,44 @@ void Physics::SetUpCustomPhysics()
 
 	//add sphere to scene
 	Sphere* newBall;
-	newBall = new Sphere(glm::vec3(0,10,0),glm::vec3(0,-0.2,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
-	
+	newBall = new Sphere(glm::vec3(-5,0,0),glm::vec3(1,0,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
-	newBall = new Sphere(glm::vec3(-8.2,10, 0), glm::vec3(0,-0.2,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
+	newBall = new Sphere(glm::vec3(5,0,0), glm::vec3(-1,0,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	newBall = new Sphere(glm::vec3(-5,0,-10), glm::vec3(1, 0, 0), 3.0f, 1.0f, glm::vec4(0, 1, 0, 1), false);
+	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	newBall = new Sphere(glm::vec3(5,0,-10), glm::vec3(-1, 0, 0), 3.0f, 1.0f, glm::vec4(0, 0, 1, 1), false);
+	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	newBall = new Sphere(glm::vec3(0, 0, -12), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(0.7,0.2,0.3, 1), false);
+	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	AABB* newAABB;
+	newAABB = new AABB(glm::vec3(0,1,0),glm::vec3(1,1,1),glm::vec4(0,1,0,1),true);
+	m_customPhysicsScene->AddPhysicsObject(newAABB);
+
+	newAABB = new AABB(glm::vec3(-10,1,5),glm::vec3(1,1,1),glm::vec4(1,0,0,1),false);
+	newAABB->SetVelocity(glm::vec3(1,0,0));
+	m_customPhysicsScene->AddPhysicsObject(newAABB);
+
+	newAABB = new AABB(glm::vec3(10,1,5),glm::vec3(1,1,1),glm::vec4(0,0,1,1),false);
+	newAABB->SetVelocity(glm::vec3(-1, 0, 0));
+	m_customPhysicsScene->AddPhysicsObject(newAABB);
+
+	newAABB = new AABB(glm::vec3(0, 10, -12), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1), true);
+	m_customPhysicsScene->AddPhysicsObject(newAABB);
 
 	Plane* newPlane;
 	newPlane = new Plane(glm::vec3(0,-2,0),glm::vec3(0,1,0),glm::vec4(1,1,1,1),0.0f,20.0f,true);
 
 	m_customPhysicsScene->AddPhysicsObject(newPlane);
 
-	newPlane = new Plane(glm::vec3(0,10,0),glm::vec3(0, 1, 0), glm::vec4(1, 0, 0, 1), 0.0f,0.0f,true);
+	//newPlane = new Plane(glm::vec3(0,10,0),glm::vec3(0,-1,0), glm::vec4(1, 0, 0, 1), 0.0f,0.0f,true);
 
-	m_customPhysicsScene->AddPhysicsObject(newPlane);
+	//m_customPhysicsScene->AddPhysicsObject(newPlane);
 }
 
 void Physics::UpdateCustomPhysics()

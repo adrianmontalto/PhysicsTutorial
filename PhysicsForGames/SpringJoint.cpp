@@ -14,7 +14,7 @@ SpringJoint::SpringJoint(class RigidBody* connection1, RigidBody* connection2,
 	m_springCoefficient = springCoefficient;
 	m_damping = damping;
 	m_restLength = glm::length(m_connections[0]->GetPosition() - m_connections[1]->GetPosition());
-	//m_shapeID = JOINT;
+	m_shapeID = JOINT;
 }
 
 SpringJoint::~SpringJoint()

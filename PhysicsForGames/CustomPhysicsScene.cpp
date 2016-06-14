@@ -20,7 +20,7 @@ void CustomPhysicsScene::AddPhysicsObject(PhysicsObject* object)
 
 void CustomPhysicsScene::RemovePhysicsObject(PhysicsObject* object)
 {
-	for (int i = 0; i < m_physicObjects.size(); ++i)
+	for (int i = 0; i < (int)m_physicObjects.size(); ++i)
 	{
 		if (m_physicObjects[i] == object)
 		{
@@ -32,7 +32,7 @@ void CustomPhysicsScene::RemovePhysicsObject(PhysicsObject* object)
 void CustomPhysicsScene::Update()
 {
 	CheckForInput();
-	for (int i = 0; i < m_physicObjects.size(); ++i)
+	for (int i = 0; i < (int)m_physicObjects.size(); ++i)
 	{
 		m_physicObjects[i]->Update(m_gravity,m_timeStep);
 	}
@@ -40,7 +40,7 @@ void CustomPhysicsScene::Update()
 
 void CustomPhysicsScene::UpdateGizmos()
 {
-	for (int i = 0; i < m_physicObjects.size(); ++i)
+	for (int i = 0; i < (int)m_physicObjects.size(); ++i)
 	{
 		m_physicObjects[i]->MakeGizmo();
 	}

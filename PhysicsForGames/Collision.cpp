@@ -63,8 +63,7 @@ void Collision::CheckForCustomCollision()
 	float overlap = sphereDistanceAlongPlaneNormal - (plane->GetDistance() + sphere->m_radius);
 	if (overlap < 0)
 	{
-		//sphere->SetVelocity(glm::vec3(0));
-		Response(plane, sphere,- overlap, planeNormal);
+		Response(plane, sphere,-overlap,planeNormal);
 		return true;
 	}
 	return false;
@@ -218,24 +217,7 @@ void Collision::CheckForCustomCollision()
 		 else if (yOverlap == minOverlap) seperationNormal.y = std::signbit(distanceBetweenBoxes.y) ? -1.0f : 1.0f;
 		 else if (zOverlap == minOverlap) seperationNormal.z = std::signbit(distanceBetweenBoxes.z) ? -1.0f : 1.0f;
 
-		 float totalMass = axisAlignedBoundingBox1->GetMass() + axisAlignedBoundingBox2->GetMass();
-		 float massRatio1 = axisAlignedBoundingBox1->GetMass() / totalMass;
-		 float massRatio2 = axisAlignedBoundingBox2->GetMass() / totalMass;
-
-		 glm::vec3 seperationVector = seperationNormal * -minOverlap;
-		 axisAlignedBoundingBox1->AddPosition(-seperationVector * massRatio2);
-		 axisAlignedBoundingBox2->AddPosition(seperationVector * massRatio1);
-
-		 const float coefficientOfRestitution = 0.5f;
-
-		 glm::vec3 relativeVel = axisAlignedBoundingBox2->GetVelocity() - axisAlignedBoundingBox1->GetVelocity();
-		 float velocityAlongNormal = glm::dot(relativeVel, seperationNormal);
-		 float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
-		 impulseAmount /= 1 / axisAlignedBoundingBox1->GetMass() + 1 / axisAlignedBoundingBox2->GetMass();
-
-		 glm::vec3 impulse = impulseAmount * seperationNormal;
-		 axisAlignedBoundingBox1->AddVelocity(1 / axisAlignedBoundingBox1->GetMass() * -impulse);
-		 axisAlignedBoundingBox2->AddVelocity(1 / axisAlignedBoundingBox2->GetMass() * +impulse);
+		 Response(axisAlignedBoundingBox1, axisAlignedBoundingBox2, -minOverlap, seperationNormal);
 		 return true;
 	 }
 	 return false;
