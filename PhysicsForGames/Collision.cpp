@@ -22,9 +22,9 @@ void Collision::CheckForCustomCollision()
 {
 	int objectCount = m_customScene->m_physicObjects.size();
 	//need to check for collisions against all objects except this one.
-	for (int outer = 0; outer < 1; ++outer)
+	for (int outer = 0; outer < objectCount - 1; ++outer)
 	{
-		for (int inner = outer + 1; inner < objectCount -1; ++inner)
+		for (int inner = outer + 1; inner < objectCount; ++inner)
 		{
 			//sets the objects to the outer and inner object
 			PhysicsObject* object1 = m_customScene->m_physicObjects[outer];
@@ -38,7 +38,6 @@ void Collision::CheckForCustomCollision()
 			if (collisionFunctionPtr != NULL)
 			{
 				collisionFunctionPtr(object1,object2);
-
 			}
 		}
 	}
@@ -46,14 +45,29 @@ void Collision::CheckForCustomCollision()
 
  const std::array<CollisionDetectionFunction, 9> Collision::CollisionFunctions
  {
-	Plane2Sphere,Plane2AABB,Plane2Plane,
-	Sphere2Plane,Sphere2AABB,Sphere2Sphere,
+	Plane2Plane,Plane2Sphere,Plane2AABB,
+	Sphere2Plane,Sphere2Sphere,Sphere2AABB,
 	AABB2Plane,AABB2Sphere,AABB2AABB,
  };
 
  bool Collision::Plane2Sphere(PhysicsObject* planeObject, PhysicsObject* SphereObject)
  {
-	return Sphere2Plane(SphereObject, planeObject);
+	Sphere* sphere = static_cast<Sphere*>(SphereObject);
+	Plane* plane = static_cast<Plane*>(planeObject);
+
+	const glm::vec3 sphereVector = sphere->GetPosition();
+	const glm::vec3 planeNormal = plane->GetNormal();
+
+	float sphereDistanceAlongPlaneNormal = glm::dot(sphereVector,planeNormal);
+
+	float overlap = sphereDistanceAlongPlaneNormal - (plane->GetDistance() + sphere->m_radius);
+	if (overlap < 0)
+	{
+		//sphere->SetVelocity(glm::vec3(0));
+		Response(plane, sphere,- overlap, planeNormal);
+		return true;
+	}
+	return false;
  }
 
  bool Collision::Plane2AABB(PhysicsObject* planeObject, PhysicsObject* AABBObject)
@@ -66,7 +80,7 @@ void Collision::CheckForCustomCollision()
 	glm::vec3 maxPos = AABBPos + aabb->GetExtent();
 	
 	float minPointDistanceAlongPlaneNormal = glm::dot(minPos, plane->GetNormal());
-	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos,plane->GetNormal());
+	float maxPointDistanceAlongPlaneNormal = glm::dot(maxPos, plane->GetNormal());
 	
 	float overlap = std::min(minPointDistanceAlongPlaneNormal,maxPointDistanceAlongPlaneNormal);
 	
@@ -87,36 +101,8 @@ void Collision::CheckForCustomCollision()
  {
 	Sphere *sphere = dynamic_cast<Sphere*>(sphereObject);
 	Plane *plane = dynamic_cast<Plane*>(planeObject);
-	 
-	glm::vec3 collisionNormal = plane->GetNormal();
-	float sphereToPlane = glm::dot(sphere->GetPosition(), plane->GetNormal()) - plane->GetDistance();
 
-	//planes are infinetly thin,double sided,objects so if we are behind it we flip the normal
-	if (sphereToPlane < 0)
-	{
-		collisionNormal *= -1;
-		sphereToPlane *= -1;
-	}
-	//intersection between sphere and plane
-	float intersection = sphere->m_radius - sphereToPlane;
-	if (intersection > 0)
-	{
-		//find the point where the collision occured(we need this for colision response later)
-		//the plane is always static so collision response only applies to the sphere
-		glm::vec3 planeNormal = plane->GetNormal();
-		if (sphereToPlane < 0)
-		{
-			//flip the normal if we are behind the plane
-			planeNormal *= -1;
-		}
-
-		glm::vec3 forceVector = -1 * sphere->GetMass() * planeNormal 
-								*(glm::dot(planeNormal, sphere->GetVelocity()));
-		sphere->ApplyForce(glm::vec3(2) * forceVector);
-		sphere->AddPosition(collisionNormal * intersection * 0.5f);
-		return true;
-	}
-	return false;
+	return Plane2Sphere(plane,sphere);
  }
 
  bool Collision::Sphere2AABB(PhysicsObject* sphereObject, PhysicsObject* AABBObject)
@@ -162,23 +148,7 @@ void Collision::CheckForCustomCollision()
 	float overlap = glm::length(clampedDistance) - sphere->m_radius;
 	if (overlap < 0)
 	{
-		float totalMass = aabb->GetMass() + sphere->GetMass();
-		float massRatio1 = aabb->GetMass() / totalMass;
-		float massRatio2 = sphere->GetMass() / totalMass;
-
-		glm::vec3 seperationVector = glm::normalize(clampedDistance) * -overlap;
-		aabb->AddPosition(-seperationVector * massRatio2);
-		sphere->AddPosition(seperationVector * massRatio1);
-
-		const float coefficientOfRestitution = 0.5f;
-		glm::vec3 relativeVel = sphere->GetVelocity() - aabb->GetVelocity();
-		float velocityAlongNormal = glm::dot(relativeVel,glm::normalize(clampedDistance));
-		float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
-		impulseAmount /= 1 / aabb->GetMass() + 1 / sphere->GetMass();
-
-		glm::vec3 impulse = impulseAmount * glm::normalize(clampedDistance);
-		aabb->AddVelocity(1 / aabb->GetMass() * -impulse);
-		sphere->AddVelocity(1 / sphere->GetMass() * +impulse);
+		Response(aabb,sphere,-overlap,glm::normalize(clampedDistance));
 		return true;
 	}
 
@@ -194,7 +164,7 @@ void Collision::CheckForCustomCollision()
 	 if (sphere1 != NULL && sphere2 != NULL)
 	 {
 		//gets the vector between the two spheres
-		glm::vec3 direction = sphere1->GetPosition() - sphere2->GetPosition();
+		glm::vec3 direction = sphere2->GetPosition() - sphere1->GetPosition();
 		float distanceBetweenSpheres = glm::length(direction);
 		float combinedSphereRadius = sphere1->m_radius + sphere2->m_radius;
 
@@ -290,7 +260,7 @@ void Collision::CheckForCustomCollision()
 
 	glm::vec3 relativeVel = object2->GetVelocity() - object1->GetVelocity();
 	float velocityAlongNormal = glm::dot(relativeVel, normal);
-	float impulseAmount = -(1 - coefficientOfRestitution) * velocityAlongNormal;
+	float impulseAmount = -(1 + coefficientOfRestitution) * velocityAlongNormal;
 	impulseAmount /= 1 / object1->GetMass() + 1 / object2->GetMass();
 
 	glm::vec3 impulse = impulseAmount * normal;

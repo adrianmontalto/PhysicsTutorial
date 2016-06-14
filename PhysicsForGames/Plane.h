@@ -5,12 +5,14 @@ class Plane :public PhysicsObject
 {
 private:
 	glm::vec3 m_normal;//the normal of the plane
+	glm::vec3 m_position;
 	float m_distance;//the length and width of plane
+	float m_size;
 public:
 	//default constructor
 	Plane();
 	//constructor that takes in the planes normal,colour and distance
-	Plane(glm::vec3 normal,glm::vec4 colour,float distance,bool aStatic);
+	Plane(glm::vec3 position,glm::vec3 normal,glm::vec4 colour,float distance,float size,bool aStatic);
 	//default destructor
 	~Plane();
 	//virtual update and debug

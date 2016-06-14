@@ -4,12 +4,10 @@
 
 enum ShapeType
 {
-	PLANE = 0,
-	SPHERE = 1,
-	BOX = 2,
-	AXISALIGNEDBOX = 3,
-	JOINT = 4,
-	NUMBERSHAPE = 5,
+	PLANE,
+	SPHERE,
+	AXISALIGNEDBOX,
+	NUMBERSHAPE,
 };
 
 class PhysicsObject
@@ -30,6 +28,7 @@ public:
 	ShapeType GetShapeID();
 	//return the velocity
 	glm::vec3 GetVelocity();
+	void SetVelocity(glm::vec3 velocity) { m_velocity = velocity; };
 	//adds to velocity
 	void AddVelocity(glm::vec3 velocity);
 	//return the colour

@@ -100,7 +100,7 @@
       <Filter>Header Files\Shapes</Filter>
     </ClInclude>
     <ClInclude Include="SpringJoint.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Shapes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -153,7 +153,7 @@
       <Filter>Source Files\Shapes</Filter>
     </ClCompile>
     <ClCompile Include="SpringJoint.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Shapes</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
