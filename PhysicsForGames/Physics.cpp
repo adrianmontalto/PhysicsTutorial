@@ -7,6 +7,7 @@
 #include "Sphere.h"
 #include "Plane.h"
 #include "AABB.h"
+#include "SpringJoint.h"
 #include "Collision.h"
 
 #include "glm/ext.hpp"
@@ -27,7 +28,7 @@ bool Physics::startup()
     Gizmos::create();
 
     m_camera = FlyCamera(1280.0f / 720.0f, 10.0f);
-    m_camera.setLookAt(vec3(10, 10, 10), vec3(0), vec3(0, 1, 0));
+    m_camera.setLookAt(vec3(20,30,10), vec3(5,0,0), vec3(0, 1, 0));
     m_camera.sensitivity = 3;
 
 	m_renderer = new Renderer();
@@ -239,37 +240,40 @@ void Physics::SetUpCustomPhysics()
 	Sphere* newBall;
 	newBall = new Sphere(glm::vec3(-5,0,0),glm::vec3(1,0,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
-
+	
 	newBall = new Sphere(glm::vec3(5,0,0), glm::vec3(-1,0,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
-
+	
 	newBall = new Sphere(glm::vec3(-5,0,-10), glm::vec3(1, 0, 0), 3.0f, 1.0f, glm::vec4(0, 1, 0, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
-
+	
 	newBall = new Sphere(glm::vec3(5,0,-10), glm::vec3(-1, 0, 0), 3.0f, 1.0f, glm::vec4(0, 0, 1, 1), false);
-	m_customPhysicsScene->AddPhysicsObject(newBall);
-
-	newBall = new Sphere(glm::vec3(0, 0, -12), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(0.7,0.2,0.3, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	AABB* newAABB;
 	newAABB = new AABB(glm::vec3(0,1,0),glm::vec3(1,1,1),glm::vec4(0,1,0,1),true);
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
-
+	
 	newAABB = new AABB(glm::vec3(-10,1,5),glm::vec3(1,1,1),glm::vec4(1,0,0,1),false);
 	newAABB->SetVelocity(glm::vec3(1,0,0));
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
-
+	
 	newAABB = new AABB(glm::vec3(10,1,5),glm::vec3(1,1,1),glm::vec4(0,0,1,1),false);
 	newAABB->SetVelocity(glm::vec3(-1, 0, 0));
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 
-	newAABB = new AABB(glm::vec3(0, 10, -12), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1), true);
+	newAABB = new AABB(glm::vec3(0,10,-12), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1), true);
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
+
+	newBall = new Sphere(glm::vec3(0,5,-12), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(0.7, 0.2, 0.3, 1), false);
+	m_customPhysicsScene->AddPhysicsObject(newBall);
+
+	SpringJoint* newSpringJoint;
+	newSpringJoint = new SpringJoint(newAABB,newBall,2,0);
+	m_customPhysicsScene->AddPhysicsObject(newSpringJoint);
 
 	Plane* newPlane;
 	newPlane = new Plane(glm::vec3(0,-2,0),glm::vec3(0,1,0),glm::vec4(1,1,1,1),0.0f,20.0f,true);
-
 	m_customPhysicsScene->AddPhysicsObject(newPlane);
 
 	//newPlane = new Plane(glm::vec3(0,10,0),glm::vec3(0,-1,0), glm::vec4(1, 0, 0, 1), 0.0f,0.0f,true);

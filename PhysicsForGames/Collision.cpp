@@ -24,20 +24,26 @@ void Collision::CheckForCustomCollision()
 	//need to check for collisions against all objects except this one.
 	for (int outer = 0; outer < objectCount - 1; ++outer)
 	{
-		for (int inner = outer + 1; inner < objectCount; ++inner)
+		if (m_customScene->m_physicObjects[outer]->GetShapeID() != JOINT)
 		{
-			//sets the objects to the outer and inner object
-			PhysicsObject* object1 = m_customScene->m_physicObjects[outer];
-			PhysicsObject* object2 = m_customScene->m_physicObjects[inner];
-			//sets ids to that of the objects
-			int shape1ID = object1->GetShapeID();
-			int shape2ID = object2->GetShapeID();
-			//set an index using the objects shapes id
-			int functionIndex = (shape1ID * NUMBERSHAPE) + shape2ID;
-			CollisionDetectionFunction collisionFunctionPtr = CollisionFunctions[functionIndex];
-			if (collisionFunctionPtr != NULL)
+			for (int inner = outer + 1; inner < objectCount; ++inner)
 			{
-				collisionFunctionPtr(object1,object2);
+				if (m_customScene->m_physicObjects[inner]->GetShapeID() != JOINT)
+				{
+					//sets the objects to the outer and inner object
+					PhysicsObject* object1 = m_customScene->m_physicObjects[outer];
+					PhysicsObject* object2 = m_customScene->m_physicObjects[inner];
+					//sets ids to that of the objects
+					int shape1ID = object1->GetShapeID();
+					int shape2ID = object2->GetShapeID();
+					//set an index using the objects shapes id
+					int functionIndex = (shape1ID * NUMBERSHAPE) + shape2ID;
+					CollisionDetectionFunction collisionFunctionPtr = CollisionFunctions[functionIndex];
+					if (collisionFunctionPtr != NULL)
+					{
+						collisionFunctionPtr(object1, object2);
+					}
+				}
 			}
 		}
 	}

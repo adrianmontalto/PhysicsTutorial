@@ -40,9 +40,12 @@ void RigidBody::Debug()
 
 void RigidBody::ApplyForce(glm::vec3 force)
 {
-	if (force != glm::vec3(0) && m_mass != 0)
+	if (m_isStatic == false)
 	{
-		m_acceleration = force / m_mass;
+		if (force != glm::vec3(0) && m_mass != 0)
+		{
+			m_acceleration = force / m_mass;
+		}
 	}
 }
 
@@ -50,15 +53,21 @@ void RigidBody::ApplyForceToActor(RigidBody* acrtor2, glm::vec3 force)
 {
 	if (force != glm::vec3(0))
 	{
-		if (m_mass != 0)
+		if (m_isStatic == false)
 		{
-			m_acceleration -= force / m_mass;
+			if (m_mass != 0)
+			{
+				m_acceleration -= force / m_mass;
+			}
 		}
-		
-		if (acrtor2->m_mass != 0)
+
+		if (acrtor2->GetStatic() == false)
 		{
-			acrtor2->m_acceleration += force / acrtor2->m_mass;
-		}		
+			if (acrtor2->m_mass != 0)
+			{
+				acrtor2->m_acceleration += force / acrtor2->m_mass;
+			}
+		}
 	}
 }
 
