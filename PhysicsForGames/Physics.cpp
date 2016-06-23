@@ -79,7 +79,7 @@ bool Physics::update()
     m_camera.update(1.0f / 60.0f);
 	//UpDatePhysX(m_delta_time);
 	UpdateCustomPhysics();
-	m_collisionManager->CheckForCustomCollision();
+	//m_collisionManager->CheckForCustomCollision();
     return true;
 }
 
@@ -269,7 +269,7 @@ void Physics::SetUpCustomPhysics()
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	SpringJoint* newSpringJoint;
-	newSpringJoint = new SpringJoint(newAABB,newBall,2,0);
+	newSpringJoint = new SpringJoint(newAABB,newBall,200,0);
 	m_customPhysicsScene->AddPhysicsObject(newSpringJoint);
 
 	Plane* newPlane;
