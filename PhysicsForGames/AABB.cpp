@@ -5,13 +5,14 @@ AABB::AABB()
 {
 }
 
-AABB::AABB(glm::vec3 position, glm::vec3 extents, glm::vec4 colour,bool isStatic)
+AABB::AABB(glm::vec3 position, glm::vec3 extents, glm::vec4 colour,float mass,bool isStatic)
 {
 	m_position = position;
 	m_extents = extents;
 	m_colour = colour;
 	m_shapeID = AXISALIGNEDBOX;
 	m_isStatic = isStatic;
+	m_mass = mass;
 }
 
 AABB::~AABB()

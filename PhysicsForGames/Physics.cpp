@@ -79,7 +79,7 @@ bool Physics::update()
     m_camera.update(1.0f / 60.0f);
 	//UpDatePhysX(m_delta_time);
 	UpdateCustomPhysics();
-	//m_collisionManager->CheckForCustomCollision();
+	m_collisionManager->CheckForCustomCollision();
     return true;
 }
 
@@ -233,43 +233,43 @@ void Physics::SetUpCustomPhysics()
 {
 	//set up the custom physics scene
 	m_customPhysicsScene = new CustomPhysicsScene();
-	m_customPhysicsScene->m_gravity = glm::vec3(0,0,0);
+	m_customPhysicsScene->m_gravity = glm::vec3(0,-0.2,0);
 	m_customPhysicsScene->m_timeStep = 0.4f;
 
 	//add sphere to scene
 	Sphere* newBall;
-	newBall = new Sphere(glm::vec3(-5,0,0),glm::vec3(1,0,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
+	newBall = new Sphere(glm::vec3(-5,0,0),glm::vec3(2,0,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 	
-	newBall = new Sphere(glm::vec3(5,0,0), glm::vec3(-1,0,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
+	newBall = new Sphere(glm::vec3(5,0,0), glm::vec3(-2,0,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 	
-	newBall = new Sphere(glm::vec3(-5,0,-10), glm::vec3(1, 0, 0), 3.0f, 1.0f, glm::vec4(0, 1, 0, 1), false);
+	newBall = new Sphere(glm::vec3(-5,0,-10), glm::vec3(2, 0, 0), 3.0f, 1.0f, glm::vec4(0, 1, 0, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 	
-	newBall = new Sphere(glm::vec3(5,0,-10), glm::vec3(-1, 0, 0), 3.0f, 1.0f, glm::vec4(0, 0, 1, 1), false);
+	newBall = new Sphere(glm::vec3(5,0,-10), glm::vec3(-2, 0, 0), 3.0f, 1.0f, glm::vec4(0, 0, 1, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	AABB* newAABB;
-	newAABB = new AABB(glm::vec3(0,1,0),glm::vec3(1,1,1),glm::vec4(0,1,0,1),true);
+	newAABB = new AABB(glm::vec3(0,1,0),glm::vec3(1,1,1),glm::vec4(0,1,0,1),10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 	
-	newAABB = new AABB(glm::vec3(-10,1,5),glm::vec3(1,1,1),glm::vec4(1,0,0,1),false);
+	newAABB = new AABB(glm::vec3(-10,1,5),glm::vec3(1,1,1),glm::vec4(1,0,0,1),10.0f,false);
 	newAABB->SetVelocity(glm::vec3(1,0,0));
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 	
-	newAABB = new AABB(glm::vec3(10,1,5),glm::vec3(1,1,1),glm::vec4(0,0,1,1),false);
+	newAABB = new AABB(glm::vec3(10,1,5),glm::vec3(1,1,1),glm::vec4(0,0,1,1),10.0f,false);
 	newAABB->SetVelocity(glm::vec3(-1, 0, 0));
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 
-	newAABB = new AABB(glm::vec3(0,10,-12), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1), true);
+	newAABB = new AABB(glm::vec3(0,10,-12), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1),10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 
-	newBall = new Sphere(glm::vec3(0,5,-12), glm::vec3(0, 0, 0), 3.0f, 1.0f, glm::vec4(0.7, 0.2, 0.3, 1), false);
+	newBall = new Sphere(glm::vec3(0,5,-12), glm::vec3(0,0,0), 30.0f, 1.0f, glm::vec4(0.7, 0.2, 0.3, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	SpringJoint* newSpringJoint;
-	newSpringJoint = new SpringJoint(newAABB,newBall,200,0);
+	newSpringJoint = new SpringJoint(newAABB,newBall,2.0f,0);
 	m_customPhysicsScene->AddPhysicsObject(newSpringJoint);
 
 	Plane* newPlane;
@@ -291,22 +291,22 @@ void Physics::SetUpCustomBorders(float tableSize, float borderHeight, glm::vec4 
 {
 	glm::vec3 position = glm::vec3(0, 0.5f, (tableSize / 2) + 1);
 	glm::vec3 extent = glm::vec3(tableSize / 2, borderHeight, 1);
-	AABB* newBox = new AABB(position,extent,colour,true);
+	AABB* newBox = new AABB(position,extent,colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 
 	position = glm::vec3(0,0.5f,(-tableSize / 2) - 1);
 	extent = glm::vec3(tableSize / 2, borderHeight, 1);
-	newBox = new AABB(position, extent, colour, true);
+	newBox = new AABB(position, extent, colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 	
 	position = glm::vec3((tableSize / 2) - 1, 0.5f, 0);
 	extent = glm::vec3(1,borderHeight,tableSize/2);
-	newBox = new AABB(position, extent, colour, true);
+	newBox = new AABB(position, extent, colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 	
 	position = glm::vec3((-tableSize / 2) + 1, 0.5f, 0);
 	extent = glm::vec3(1, borderHeight, tableSize / 2);
-	newBox = new AABB(position, extent, colour, true);
+	newBox = new AABB(position, extent, colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 }
 
