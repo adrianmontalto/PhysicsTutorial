@@ -15,6 +15,22 @@ class CustomPhysicsScene;
 class Physics : public Application
 {
 public:
+	CustomPhysicsScene* m_customPhysicsScene;
+	Renderer* m_renderer;
+	PxFoundation* m_physicsFoundation;
+	PxPhysics* m_physics;
+	PxScene* m_physicsScene;
+	PxMaterial* m_physicsMaterial;
+	PxMaterial* m_boxMaterial;
+	PxCooking* m_physicsCooker;
+	PxControllerManager* m_controllerManager;
+	PxDefaultErrorCallback m_defaultErrorCallback;
+	PxDefaultAllocator m_defaultAllocator;
+	PxSimulationFilterShader m_defaultFilterShader = PxDefaultSimulationFilterShader;
+	FlyCamera m_camera;
+	class Collision* m_collisionManager;
+	float m_delta_time;
+
 	virtual bool startup();
 	virtual void shutdown();
     virtual bool update();
@@ -22,27 +38,16 @@ public:
 
 	void renderGizmos(PxScene* physics_scene);
 	void SetUpPhysX();
+	PxScene* CreateDefaultScene();
 	void UpDatePhysX(float deltaTime);
 	void SetUpCustomPhysics();
 	void UpdateCustomPhysics();
 	void SetUpCustomBorders(float tableSize,float borderHeight,glm::vec4 colour);
 	void SetUpVisualDebugger();
 	void SetUpTutorial1();
-
-	CustomPhysicsScene* m_customPhysicsScene;
-    Renderer* m_renderer;
-	PxFoundation* m_physicsFoundation;
-	PxPhysics* m_physics;
-	PxScene* m_physicsScene;
-	PxMaterial* m_physicsMaterial;
-	PxMaterial* m_boxMaterial;
-	PxCooking* m_physicsCooker;
-	PxDefaultErrorCallback m_defaultErrorCallback;
-	PxDefaultAllocator m_defaultAllocatorCallback;
-	PxSimulationFilterShader m_defaultFilterShader = PxDefaultSimulationFilterShader;
-    FlyCamera m_camera;
-	class Collision* m_collisionManager;
-    float m_delta_time;
+	void SetUpIntroductionToPhysx();
+	void SetupRBDTutorial();
+	void CreateDynamicSphere();
 };
 
 class MyAllocator : public PxAllocatorCallback

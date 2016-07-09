@@ -33,20 +33,21 @@ bool Physics::startup()
 
 	m_renderer = new Renderer();
 
-	//SetUpPhysX();
+	SetUpPhysX();
+	SetUpIntroductionToPhysx();
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
-	SetUpCustomPhysics();
-	SetUpCustomBorders(40.0f, 10.0f, glm::vec4(1, 0, 0, 1));
-	m_collisionManager = new Collision(m_customPhysicsScene);
+	//SetUpCustomPhysics();
+	//SetUpCustomBorders(40.0f, 10.0f, glm::vec4(1, 0, 0, 1));
+	//m_collisionManager = new Collision(m_customPhysicsScene);
     return true;
 }
 
 void Physics::shutdown()
 {
-	//m_physicsScene->release();
-	//m_physics->release();
-	//m_physicsFoundation->release();
+	m_physicsScene->release();
+	m_physics->release();
+	m_physicsFoundation->release();
 	delete m_renderer;
     Gizmos::destroy();
     Application::shutdown();
@@ -76,10 +77,11 @@ bool Physics::update()
             i == 10 ? red : black);
     }
 
+	renderGizmos(m_physicsScene);
     m_camera.update(1.0f / 60.0f);
-	//UpDatePhysX(m_delta_time);
-	UpdateCustomPhysics();
-	m_collisionManager->CheckForCustomCollision();
+	UpDatePhysX(m_delta_time);
+	//UpdateCustomPhysics();
+	//m_collisionManager->CheckForCustomCollision();
     return true;
 }
 
@@ -201,31 +203,38 @@ void Physics::renderGizmos(PxScene* physics_scene)
 
 void Physics::SetUpPhysX()
 {
-	PxAllocatorCallback *myCallback = new MyAllocator();
-	m_physicsFoundation = PxCreateFoundation(PX_PHYSICS_VERSION,*myCallback,m_defaultErrorCallback);
+	m_physicsFoundation = PxCreateFoundation(PX_PHYSICS_VERSION,m_defaultAllocator,m_defaultErrorCallback);
 	m_physics = PxCreatePhysics(PX_PHYSICS_VERSION,*m_physicsFoundation,PxTolerancesScale());
 	PxInitExtensions(*m_physics);
 
 	//create physics material
-	m_physicsMaterial = m_physics->createMaterial(0.5f, 0.5f, 0.5f);
+	m_physicsMaterial = m_physics->createMaterial(1, 1, 0);
 
+	m_physicsCooker = PxCreateCooking(PX_PHYSICS_VERSION, *m_physicsFoundation, PxCookingParams(PxTolerancesScale()));
+}
+
+PxScene* Physics::CreateDefaultScene()
+{
 	PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
-	sceneDesc.gravity = PxVec3(0,-10.0f,0);
+	sceneDesc.gravity = PxVec3(0, -9.807f, 0);
 	sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
 	sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(1);
-	m_physicsScene = m_physics->createScene(sceneDesc);
+	PxScene* result = m_physics->createScene(sceneDesc);
+
+	return result;
 }
 
 void Physics::UpDatePhysX(float deltaTime)
 {
-	if (deltaTime <= 0)
+	if (deltaTime > 0)
 	{
-		return;
+		m_physicsScene->simulate(deltaTime > 0.033f ? 0.033f : deltaTime);
+		while (m_physicsScene->fetchResults() == false);
 	}
-	m_physicsScene->simulate(deltaTime);
-	while (m_physicsScene->fetchResults() == false)
-	{
 
+	if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		CreateDynamicSphere();
 	}
 }
 
@@ -348,4 +357,60 @@ void Physics::SetUpTutorial1()
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
+}
+
+void Physics::SetUpIntroductionToPhysx()
+{
+	m_physicsScene = CreateDefaultScene();
+
+	//add a plane
+	PxTransform pose = PxTransform(PxVec3(0.0f, 0, 0.0f), PxQuat(PxHalfPi * 1.0f, PxVec3(0.0f, 0.0f, 1.0f)));
+	PxRigidStatic* plane = PxCreateStatic(*m_physics, pose, PxPlaneGeometry(), *m_physicsMaterial);
+	
+	//add it to the physX scene
+	m_physicsScene->addActor(*plane);
+
+	//add a box
+	float density = 10;
+	PxBoxGeometry box(2, 2, 2);
+	PxTransform transform(PxVec3(0, 5, 0));
+	PxRigidDynamic*  dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+}
+
+void Physics::SetupRBDTutorial()
+{
+	m_physicsScene = CreateDefaultScene();
+
+	//add a plane to thge scene
+	PxTransform transform = PxTransform(PxVec3(0, 0, 0), PxQuat((float)PxHalfPi, PxVec3(0, 0, 1)));
+
+	PxRigidStatic* plane = PxCreateStatic(*m_physics,transform,PxPlaneGeometry(),*m_physicsMaterial);
+
+	m_physicsScene->addActor(*plane);
+}
+
+void Physics::CreateDynamicSphere()
+{
+	//transform
+	vec3 cam_pos = m_camera.world[3].xyz();
+	vec3 box_vel = -m_camera.world[2].xyz() * 20.0f;
+	PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y, cam_pos.z));
+
+	//geometry
+	PxSphereGeometry sphere(0.5f);
+
+	//density
+	float density = 10.0f;
+
+	float muzzleSpeed = -50.0f;
+
+	PxRigidDynamic* new_actor = PxCreateDynamic(*m_physics,box_transform,sphere,*m_physicsMaterial,density);
+
+	glm::vec3 direction(-m_camera.world[2]);
+	physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * muzzleSpeed;
+	new_actor->setLinearVelocity(velocity, true);
+	m_physicsScene->addActor(*new_actor);
 }
