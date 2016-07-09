@@ -397,7 +397,7 @@ void Physics::CreateDynamicSphere()
 	//transform
 	vec3 cam_pos = m_camera.world[3].xyz();
 	vec3 box_vel = -m_camera.world[2].xyz() * 20.0f;
-	PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y, cam_pos.z));
+	PxTransform box_transform(PxVec3(cam_pos.x + 1, cam_pos.y + 1, cam_pos.z + 1));
 
 	//geometry
 	PxSphereGeometry sphere(0.5f);
@@ -409,8 +409,8 @@ void Physics::CreateDynamicSphere()
 
 	PxRigidDynamic* new_actor = PxCreateDynamic(*m_physics,box_transform,sphere,*m_physicsMaterial,density);
 
-	glm::vec3 direction(-m_camera.world[2]);
+	glm::vec3 direction(m_camera.world[2]);
 	physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * muzzleSpeed;
-	new_actor->setLinearVelocity(velocity, true);
+	new_actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
 	m_physicsScene->addActor(*new_actor);
 }
