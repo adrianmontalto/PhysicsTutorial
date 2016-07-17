@@ -30,6 +30,8 @@ public:
 	FlyCamera m_camera;
 	class Collision* m_collisionManager;
 	float m_delta_time;
+	float m_ballTimer;
+	float m_ballresetTimer;
 
 	virtual bool startup();
 	virtual void shutdown();
@@ -48,6 +50,7 @@ public:
 	void SetUpIntroductionToPhysx();
 	void SetupRBDTutorial();
 	void CreateDynamicSphere();
+	void AddPhysXBorders();
 };
 
 class MyAllocator : public PxAllocatorCallback

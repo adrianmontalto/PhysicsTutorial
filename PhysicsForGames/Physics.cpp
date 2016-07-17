@@ -30,11 +30,14 @@ bool Physics::startup()
     m_camera = FlyCamera(1280.0f / 720.0f, 10.0f);
     m_camera.setLookAt(vec3(20,30,10), vec3(5,0,0), vec3(0, 1, 0));
     m_camera.sensitivity = 3;
+	m_ballTimer = 0.0f;
+	m_ballresetTimer = 0.5f;
 
 	m_renderer = new Renderer();
 
 	SetUpPhysX();
-	SetUpIntroductionToPhysx();
+	//SetUpIntroductionToPhysx();
+	SetupRBDTutorial();
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
 	//SetUpCustomPhysics();
@@ -226,6 +229,7 @@ PxScene* Physics::CreateDefaultScene()
 
 void Physics::UpDatePhysX(float deltaTime)
 {
+	m_ballTimer -= deltaTime;
 	if (deltaTime > 0)
 	{
 		m_physicsScene->simulate(deltaTime > 0.033f ? 0.033f : deltaTime);
@@ -234,7 +238,11 @@ void Physics::UpDatePhysX(float deltaTime)
 
 	if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		CreateDynamicSphere();
+		if (m_ballTimer < 0)
+		{
+			CreateDynamicSphere();
+			m_ballTimer = m_ballresetTimer;
+		}                		
 	}
 }
 
@@ -386,10 +394,11 @@ void Physics::SetupRBDTutorial()
 
 	//add a plane to thge scene
 	PxTransform transform = PxTransform(PxVec3(0, 0, 0), PxQuat((float)PxHalfPi, PxVec3(0, 0, 1)));
-
 	PxRigidStatic* plane = PxCreateStatic(*m_physics,transform,PxPlaneGeometry(),*m_physicsMaterial);
 
 	m_physicsScene->addActor(*plane);
+
+	AddPhysXBorders();
 }
 
 void Physics::CreateDynamicSphere()
@@ -397,7 +406,7 @@ void Physics::CreateDynamicSphere()
 	//transform
 	vec3 cam_pos = m_camera.world[3].xyz();
 	vec3 box_vel = -m_camera.world[2].xyz() * 20.0f;
-	PxTransform box_transform(PxVec3(cam_pos.x + 1, cam_pos.y + 1, cam_pos.z + 1));
+	PxTransform box_transform(PxVec3(cam_pos.x + 2, cam_pos.y + 1, cam_pos.z + 1));
 
 	//geometry
 	PxSphereGeometry sphere(0.5f);
@@ -413,4 +422,39 @@ void Physics::CreateDynamicSphere()
 	physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * muzzleSpeed;
 	new_actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
 	m_physicsScene->addActor(*new_actor);
+}
+
+void Physics::AddPhysXBorders()
+{
+	//add left box
+	PxBoxGeometry box(10, 2,0.5);
+	PxTransform transform = PxTransform(0, 2, 10);
+	PxRigidStatic*  staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*staticActor);
+
+	//add right box
+	box = PxBoxGeometry(10, 2, 0.5);
+	transform = PxTransform(0, 2, -10);
+	staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	
+	//add it to the physX scene
+	m_physicsScene->addActor(*staticActor);
+	
+	//add top box
+	box = PxBoxGeometry(0.5, 2, 9.5);
+	transform = PxTransform(-9.5, 2, 0);
+	staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	
+	//add it to the physX scene
+	m_physicsScene->addActor(*staticActor);
+	
+	//add bottom box
+	box = PxBoxGeometry(0.5, 2, 9.5);
+	transform = PxTransform(9.5 , 2, 0);
+	staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	
+	//add it to the physX scene
+	m_physicsScene->addActor(*staticActor);
 }
