@@ -37,7 +37,8 @@ bool Physics::startup()
 
 	SetUpPhysX();
 	//SetUpIntroductionToPhysx();
-	SetupRBDTutorial();
+	SetupPhysXScene();
+	//SetupRBDTutorial();
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
 	//SetUpCustomPhysics();
@@ -401,12 +402,26 @@ void Physics::SetupRBDTutorial()
 	AddPhysXBorders();
 }
 
+void Physics::SetupPhysXScene()
+{
+	m_physicsScene = CreateDefaultScene();
+
+	//add a plane to thge scene
+	PxTransform transform = PxTransform(PxVec3(0, 0, 0), PxQuat((float)PxHalfPi, PxVec3(0, 0, 1)));
+	PxRigidStatic* plane = PxCreateStatic(*m_physics, transform, PxPlaneGeometry(), *m_physicsMaterial);
+
+	m_physicsScene->addActor(*plane);
+
+	AddPhysXBorders();
+	AddBlockTower();
+}
+
 void Physics::CreateDynamicSphere()
 {
 	//transform
 	vec3 cam_pos = m_camera.world[3].xyz();
 	vec3 box_vel = -m_camera.world[2].xyz() * 20.0f;
-	PxTransform box_transform(PxVec3(cam_pos.x + 2, cam_pos.y + 1, cam_pos.z + 1));
+	PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y -1, cam_pos.z));
 
 	//geometry
 	PxSphereGeometry sphere(0.5f);
@@ -422,6 +437,63 @@ void Physics::CreateDynamicSphere()
 	physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * muzzleSpeed;
 	new_actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
 	m_physicsScene->addActor(*new_actor);
+}
+
+void Physics::AddBlockTower()
+{
+	//add a box
+	float density = 10;
+	PxBoxGeometry box(0.3, 0.3,0.3);
+	PxTransform transform(PxVec3(-7,1,0));
+	PxRigidDynamic*  dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = PxTransform(PxVec3(-7, 1,-0.75));
+	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = PxTransform(PxVec3(-7, 1, -1.5));
+	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = PxTransform(PxVec3(-7, 2, -0.5));
+	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = PxTransform(PxVec3(-7, 2, -1));
+	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = PxTransform(PxVec3(-7, 3, -0.75));
+	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
 }
 
 void Physics::AddPhysXBorders()

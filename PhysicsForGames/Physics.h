@@ -49,7 +49,9 @@ public:
 	void SetUpTutorial1();
 	void SetUpIntroductionToPhysx();
 	void SetupRBDTutorial();
+	void SetupPhysXScene();
 	void CreateDynamicSphere();
+	void AddBlockTower();
 	void AddPhysXBorders();
 };
 
