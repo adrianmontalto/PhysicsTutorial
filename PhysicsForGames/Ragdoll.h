@@ -1,6 +1,6 @@
 #pragma once
 #include <PxPhysicsAPI.h>
-//#include <PxArticulationLink.h>
+#include <PxArticulation.h>
 
 //parts which make up the ragdoll
 enum RagDollParts
@@ -53,5 +53,9 @@ public:
 	const physx::PxVec3 Z_AXIS = physx::PxVec3(0, 0, 1);
 	Ragdoll();
 	~Ragdoll();
+	PxArticulations* MakeRagdol()
+	{
+		return nullptr;
+	}
 };
 
