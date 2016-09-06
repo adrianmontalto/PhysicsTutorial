@@ -2,6 +2,7 @@
 #include <PxPhysicsAPI.h>
 #include <PxArticulation.h>
 
+
 //parts which make up the ragdoll
 enum RagDollParts
 {
@@ -53,9 +54,8 @@ public:
 	const physx::PxVec3 Z_AXIS = physx::PxVec3(0, 0, 1);
 	Ragdoll();
 	~Ragdoll();
-	PxArticulations* MakeRagdol()
-	{
-		return nullptr;
-	}
+	physx::PxArticulation* MakeRagdol(physx::PxPhysics* physics,RagdollNode** nodeArray,
+									  physx::PxTransform worldPos,float scaleFactor,
+		                              physx::PxMaterial* ragdollMaterial);
 };
 
