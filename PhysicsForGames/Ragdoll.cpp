@@ -72,6 +72,36 @@ physx::PxArticulation*  Ragdoll::MakeRagdol(physx::PxPhysics* physics, RagdollNo
 			currentNodePtr->scaledGlobalPos = parentNode->scaledGlobalPos - 
 			(parrentRelative + currentRelative);
 		}
+
+		//build the transform for the link
+		physx::PxTransform linkTransform = physx::PxTransform(currentNodePtr->scaledGlobalPos,
+	    currentNodePtr->globalRotation);
+		//create the link in the articulation
+		physx::PxArticulationLink* link = articulation->createLink(parentLinkPtr,linkTransform);
+		//add a pointer to this link into the ragdoll data so we have it for later when we want to link it
+		currentNodePtr->linkptr = link;
+		float jointSpace = .01f;//gap between joints
+		float capsuleHalfLength = (halflength > jointSpace ? halflength - jointSpace : 0) + 0.01f;
+		physx::PxCapsuleGeometry capsule(radius, capsuleHalfLength);
+		link->createShape(capsule, *ragdollMaterial);//adds a capsule collider to the link
+		physx::PxRigidBodyExt::updateMassAndInertia(*link,50.0f);//adds some mass
+
+		if (currentNodePtr->parentNodeIdx != -1)
+		{
+			//get the pointer to joint from the link
+			physx::PxArticulationJoint * joint = link->getInboundJoint();
+			//get the relative rotation of this link
+			physx::PxQuat frameRotation = parentNode->globalRotation.getConjugate() *
+			currentNodePtr->globalRotation;
+			//set the parent constraint frame
+			physx::PxTransform parentConstraintFrame = physx::PxTransform(physx::PxVec3(currentNodePtr->
+			parentLinkPos * parentHalfLength, 0, 0), frameRotation);
+			//set the child constraint frame
+			physx::PxTransform thisConstraintFrame = physx::PxTransform(physx::PxVec3
+			(currentNodePtr->childLinkPos * childHalfLength, 0, 0));
+			//set up the poses for the joint
+		}
+
 	}
 	return articulation;
 }
