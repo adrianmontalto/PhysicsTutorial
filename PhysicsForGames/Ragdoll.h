@@ -54,7 +54,7 @@ public:
 	const physx::PxVec3 Z_AXIS = physx::PxVec3(0, 0, 1);
 	Ragdoll();
 	~Ragdoll();
-	physx::PxArticulation* MakeRagdol(physx::PxPhysics* physics,RagdollNode** nodeArray,
+	physx::PxArticulation* MakeRagdoll(physx::PxPhysics* physics,RagdollNode** nodeArray,
 									  physx::PxTransform worldPos,float scaleFactor,
 		                              physx::PxMaterial* ragdollMaterial);
 };

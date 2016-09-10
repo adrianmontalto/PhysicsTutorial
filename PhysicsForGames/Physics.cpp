@@ -9,6 +9,7 @@
 #include "AABB.h"
 #include "SpringJoint.h"
 #include "Collision.h"
+#include "Ragdoll.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -101,9 +102,9 @@ void Physics::draw()
     glfwPollEvents();
 }
 
-void AddWidget(PxShape* shape, PxRigidActor* actor, vec4 geo_color)
+void AddWidget(physx::PxShape* shape, physx::PxRigidActor* actor, vec4 geo_color)
 {
-    PxTransform full_transform = PxShapeExt::getGlobalPose(*shape, *actor);
+	physx::PxTransform full_transform = physx::PxShapeExt::getGlobalPose(*shape, *actor);
     vec3 actor_position(full_transform.p.x, full_transform.p.y, full_transform.p.z);
     glm::quat actor_rotation(full_transform.q.w,
         full_transform.q.x,
@@ -113,41 +114,41 @@ void AddWidget(PxShape* shape, PxRigidActor* actor, vec4 geo_color)
 
     mat4 rotate_matrix = glm::rotate(10.f, glm::vec3(7, 7, 7));
 
-    PxGeometryType::Enum geo_type = shape->getGeometryType();
+	physx::PxGeometryType::Enum geo_type = shape->getGeometryType();
 
     switch (geo_type)
     {
-    case (PxGeometryType::eBOX) :
+    case (physx::PxGeometryType::eBOX) :
     {
-        PxBoxGeometry geo;
+		physx::PxBoxGeometry geo;
         shape->getBoxGeometry(geo);
         vec3 extents(geo.halfExtents.x, geo.halfExtents.y, geo.halfExtents.z);
         Gizmos::addAABBFilled(actor_position, extents, geo_color, &rot);
     } break;
-    case (PxGeometryType::eCAPSULE) :
+    case (physx::PxGeometryType::eCAPSULE) :
     {
-        PxCapsuleGeometry geo;
+		physx::PxCapsuleGeometry geo;
         shape->getCapsuleGeometry(geo);
         Gizmos::addCapsule(actor_position, geo.halfHeight * 2, geo.radius, 16, 16, geo_color, &rot);
     } break;
-    case (PxGeometryType::eSPHERE) :
+    case (physx::PxGeometryType::eSPHERE) :
     {
-        PxSphereGeometry geo;
+		physx::PxSphereGeometry geo;
         shape->getSphereGeometry(geo);
         Gizmos::addSphereFilled(actor_position, geo.radius, 16, 16, geo_color, &rot);
     } break;
-    case (PxGeometryType::ePLANE) :
+    case (physx::PxGeometryType::ePLANE) :
     {
 
     } break;
     }
 }
 
-void Physics::renderGizmos(PxScene* physics_scene)
+void Physics::renderGizmos(physx::PxScene* physics_scene)
 {
-    PxActorTypeFlags desiredTypes = PxActorTypeFlag::eRIGID_STATIC | PxActorTypeFlag::eRIGID_DYNAMIC;
-    PxU32 actor_count = physics_scene->getNbActors(desiredTypes);
-    PxActor** actor_list = new PxActor*[actor_count];
+	physx::PxActorTypeFlags desiredTypes = physx::PxActorTypeFlag::eRIGID_STATIC | physx::PxActorTypeFlag::eRIGID_DYNAMIC;
+	physx::PxU32 actor_count = physics_scene->getNbActors(desiredTypes);
+	physx::PxActor** actor_list = new physx::PxActor*[actor_count];
 	physics_scene->getActors(desiredTypes, actor_list, actor_count);
     
     vec4 geo_color(1, 0, 0, 1);
@@ -155,19 +156,19 @@ void Physics::renderGizmos(PxScene* physics_scene)
         actor_index < (int)actor_count;
         ++actor_index)
     {
-        PxActor* curr_actor = actor_list[actor_index];
+		physx::PxActor* curr_actor = actor_list[actor_index];
         if (curr_actor->isRigidActor())
         {
-            PxRigidActor* rigid_actor = (PxRigidActor*)curr_actor;
-            PxU32 shape_count = rigid_actor->getNbShapes();
-            PxShape** shapes = new PxShape*[shape_count];
+			physx::PxRigidActor* rigid_actor = (physx::PxRigidActor*)curr_actor;
+			physx::PxU32 shape_count = rigid_actor->getNbShapes();
+			physx::PxShape** shapes = new physx::PxShape*[shape_count];
             rigid_actor->getShapes(shapes, shape_count);
 
             for (int shape_index = 0;
                 shape_index < (int)shape_count;
                 ++shape_index)
             {
-                PxShape* curr_shape = shapes[shape_index];
+				physx::PxShape* curr_shape = shapes[shape_index];
                 AddWidget(curr_shape, rigid_actor, geo_color);
             }
 
@@ -181,22 +182,22 @@ void Physics::renderGizmos(PxScene* physics_scene)
 
     for (int a = 0; a < articulation_count; ++a)
     {
-        PxArticulation* articulation;
+		physx::PxArticulation* articulation;
 		physics_scene->getArticulations(&articulation, 1, a);
 
         int link_count = articulation->getNbLinks();
 
-        PxArticulationLink** links = new PxArticulationLink*[link_count];
+		physx::PxArticulationLink** links = new physx::PxArticulationLink*[link_count];
         articulation->getLinks(links, link_count);
 
         for (int l = 0; l < link_count; ++l)
         {
-            PxArticulationLink* link = links[l];
+			physx::PxArticulationLink* link = links[l];
             int shape_count = link->getNbShapes();
 
             for (int s = 0; s < shape_count; ++s)
             {
-                PxShape* shape;
+				physx::PxShape* shape;
                 link->getShapes(&shape, 1, s);
                 AddWidget(shape, link, geo_color);
             }
@@ -208,22 +209,22 @@ void Physics::renderGizmos(PxScene* physics_scene)
 void Physics::SetUpPhysX()
 {
 	m_physicsFoundation = PxCreateFoundation(PX_PHYSICS_VERSION,m_defaultAllocator,m_defaultErrorCallback);
-	m_physics = PxCreatePhysics(PX_PHYSICS_VERSION,*m_physicsFoundation,PxTolerancesScale());
+	m_physics = PxCreatePhysics(PX_PHYSICS_VERSION,*m_physicsFoundation, physx::PxTolerancesScale());
 	PxInitExtensions(*m_physics);
 
 	//create physics material
 	m_physicsMaterial = m_physics->createMaterial(1, 1, 0);
 
-	m_physicsCooker = PxCreateCooking(PX_PHYSICS_VERSION, *m_physicsFoundation, PxCookingParams(PxTolerancesScale()));
+	m_physicsCooker = PxCreateCooking(PX_PHYSICS_VERSION, *m_physicsFoundation, physx::PxCookingParams(physx::PxTolerancesScale()));
 }
 
-PxScene* Physics::CreateDefaultScene()
+physx::PxScene* Physics::CreateDefaultScene()
 {
-	PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
-	sceneDesc.gravity = PxVec3(0, -9.807f, 0);
+	physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
+	sceneDesc.gravity = physx::PxVec3(0, -9.807f, 0);
 	sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
-	sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(1);
-	PxScene* result = m_physics->createScene(sceneDesc);
+	sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
+	physx::PxScene* result = m_physics->createScene(sceneDesc);
 
 	return result;
 }
@@ -343,9 +344,9 @@ void Physics::SetUpVisualDebugger()
 	unsigned int timeout = 100;
 	//timeout in milliseconds to wait for PVD to respond,
 	//consoles and remote PCs need a higher timeout.
-	PxVisualDebuggerConnectionFlags connectionFlags = PxVisualDebuggerExt::getAllConnectionFlags();
+	physx::PxVisualDebuggerConnectionFlags connectionFlags = physx::PxVisualDebuggerExt::getAllConnectionFlags();
 	//and now try to connectPxVisualDebuggerExt
-	auto theConnection = PxVisualDebuggerExt::createConnection(
+	auto theConnection = physx::PxVisualDebuggerExt::createConnection(
 										m_physics->getPvdConnectionManager(), pvd_host_ip, port, 
 										timeout, connectionFlags);
 }
@@ -353,16 +354,16 @@ void Physics::SetUpVisualDebugger()
 void Physics::SetUpTutorial1()
 {
 	//add a plane
-	PxTransform pose = PxTransform(PxVec3(0.0f,0,0.0f),PxQuat(PxHalfPi * 1.0f,PxVec3(0.0f,0.0f,1.0f)));
-	PxRigidStatic* plane = PxCreateStatic(*m_physics, pose, PxPlaneGeometry(), *m_physicsMaterial);
+	physx::PxTransform pose = physx::PxTransform(physx::PxVec3(0.0f,0,0.0f), physx::PxQuat(physx::PxHalfPi * 1.0f, physx::PxVec3(0.0f,0.0f,1.0f)));
+	physx::PxRigidStatic* plane = physx::PxCreateStatic(*m_physics, pose, physx::PxPlaneGeometry(), *m_physicsMaterial);
 	//add it to the physX scene
 	m_physicsScene->addActor(*plane);
 
 	//add a box
 	float density = 10;
-	PxBoxGeometry box(2, 2, 2);
-	PxTransform transform(PxVec3(0, 5, 0));
-	PxRigidDynamic*  dynamicActor =PxCreateDynamic(*m_physics,transform,box,*m_physicsMaterial,density);
+	physx::PxBoxGeometry box(2, 2, 2);
+	physx::PxTransform transform(physx::PxVec3(0, 5, 0));
+	physx::PxRigidDynamic*  dynamicActor = physx::PxCreateDynamic(*m_physics,transform,box,*m_physicsMaterial,density);
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
@@ -373,17 +374,17 @@ void Physics::SetUpIntroductionToPhysx()
 	m_physicsScene = CreateDefaultScene();
 
 	//add a plane
-	PxTransform pose = PxTransform(PxVec3(0.0f, 0, 0.0f), PxQuat(PxHalfPi * 1.0f, PxVec3(0.0f, 0.0f, 1.0f)));
-	PxRigidStatic* plane = PxCreateStatic(*m_physics, pose, PxPlaneGeometry(), *m_physicsMaterial);
+	physx::PxTransform pose = physx::PxTransform(physx::PxVec3(0.0f, 0, 0.0f), physx::PxQuat(physx::PxHalfPi * 1.0f, physx::PxVec3(0.0f, 0.0f, 1.0f)));
+	physx::PxRigidStatic* plane = physx::PxCreateStatic(*m_physics, pose, physx::PxPlaneGeometry(), *m_physicsMaterial);
 	
 	//add it to the physX scene
 	m_physicsScene->addActor(*plane);
 
 	//add a box
 	float density = 10;
-	PxBoxGeometry box(2, 2, 2);
-	PxTransform transform(PxVec3(0, 5, 0));
-	PxRigidDynamic*  dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+	physx::PxBoxGeometry box(2, 2, 2);
+	physx::PxTransform transform(physx::PxVec3(0, 5, 0));
+	physx::PxRigidDynamic*  dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
@@ -394,8 +395,8 @@ void Physics::SetupRBDTutorial()
 	m_physicsScene = CreateDefaultScene();
 
 	//add a plane to thge scene
-	PxTransform transform = PxTransform(PxVec3(0, 0, 0), PxQuat((float)PxHalfPi, PxVec3(0, 0, 1)));
-	PxRigidStatic* plane = PxCreateStatic(*m_physics,transform,PxPlaneGeometry(),*m_physicsMaterial);
+	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(0, 0, 0), physx::PxQuat((float)physx::PxHalfPi, physx::PxVec3(0, 0, 1)));
+	physx::PxRigidStatic* plane = physx::PxCreateStatic(*m_physics,transform, physx::PxPlaneGeometry(),*m_physicsMaterial);
 
 	m_physicsScene->addActor(*plane);
 
@@ -407,10 +408,14 @@ void Physics::SetupPhysXScene()
 	m_physicsScene = CreateDefaultScene();
 
 	//add a plane to thge scene
-	PxTransform transform = PxTransform(PxVec3(0, 0, 0), PxQuat((float)PxHalfPi, PxVec3(0, 0, 1)));
-	PxRigidStatic* plane = PxCreateStatic(*m_physics, transform, PxPlaneGeometry(), *m_physicsMaterial);
+	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(0, 0, 0), physx::PxQuat((float)physx::PxHalfPi, physx::PxVec3(0, 0, 1)));
+	physx::PxRigidStatic* plane = physx::PxCreateStatic(*m_physics, transform, physx::PxPlaneGeometry(), *m_physicsMaterial);
 
 	m_physicsScene->addActor(*plane);
+
+	physx::PxArticulation* ragDollArticulation;
+	//ragDollArticulation = Ragdoll::MakeRagdoll();
+	//m_physicsScene->addArticulation(*ragdoll);
 
 	AddPhysXBorders();
 	AddBlockTower();
@@ -421,21 +426,21 @@ void Physics::CreateDynamicSphere()
 	//transform
 	vec3 cam_pos = m_camera.world[3].xyz();
 	vec3 box_vel = -m_camera.world[2].xyz() * 20.0f;
-	PxTransform box_transform(PxVec3(cam_pos.x, cam_pos.y -1, cam_pos.z));
+	physx::PxTransform box_transform(physx::PxVec3(cam_pos.x, cam_pos.y -1, cam_pos.z));
 
 	//geometry
-	PxSphereGeometry sphere(0.5f);
+	physx::PxSphereGeometry sphere(0.5f);
 
 	//density
 	float density = 10.0f;
 
 	float muzzleSpeed = -50.0f;
 
-	PxRigidDynamic* new_actor = PxCreateDynamic(*m_physics,box_transform,sphere,*m_physicsMaterial,density);
+	physx::PxRigidDynamic* new_actor = physx::PxCreateDynamic(*m_physics,box_transform,sphere,*m_physicsMaterial,density);
 
 	glm::vec3 direction(m_camera.world[2]);
 	physx::PxVec3 velocity = physx::PxVec3(direction.x, direction.y, direction.z) * muzzleSpeed;
-	new_actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
+	new_actor->setLinearVelocity(physx::PxVec3(velocity.x, velocity.y, velocity.z));
 	m_physicsScene->addActor(*new_actor);
 }
 
@@ -443,17 +448,17 @@ void Physics::AddBlockTower()
 {
 	//add a box
 	float density = 10;
-	PxBoxGeometry box(0.3, 0.3,0.3);
-	PxTransform transform(PxVec3(-7,1,0));
-	PxRigidDynamic*  dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+	physx::PxBoxGeometry box(0.3, 0.3,0.3);
+	physx::PxTransform transform(physx::PxVec3(-7,1,0));
+	physx::PxRigidDynamic*  dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
 
 	//add a box
 	density = 10;
-	box = PxBoxGeometry(0.3, 0.3, 0.3);
-	transform = PxTransform(PxVec3(-7, 1,-0.75));
+	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = physx::PxTransform(physx::PxVec3(-7, 1,-0.75));
 	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
 	//add it to the physX scene
@@ -461,8 +466,17 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = PxBoxGeometry(0.3, 0.3, 0.3);
-	transform = PxTransform(PxVec3(-7, 1, -1.5));
+	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = physx::PxTransform(physx::PxVec3(-7, 1, -1.5));
+	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = physx::PxTransform(physx::PxVec3(-7, 2, -0.5));
 	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
 	//add it to the physX scene
@@ -470,8 +484,8 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = PxBoxGeometry(0.3, 0.3, 0.3);
-	transform = PxTransform(PxVec3(-7, 2, -0.5));
+	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = physx::PxTransform(physx::PxVec3(-7, 2, -1));
 	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
 	//add it to the physX scene
@@ -479,18 +493,9 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = PxBoxGeometry(0.3, 0.3, 0.3);
-	transform = PxTransform(PxVec3(-7, 2, -1));
-	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
-
-	//add it to the physX scene
-	m_physicsScene->addActor(*dynamicActor);
-
-	//add a box
-	density = 10;
-	box = PxBoxGeometry(0.3, 0.3, 0.3);
-	transform = PxTransform(PxVec3(-7, 3, -0.75));
-	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	transform = physx::PxTransform(physx::PxVec3(-7, 3, -0.75));
+	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
@@ -499,33 +504,33 @@ void Physics::AddBlockTower()
 void Physics::AddPhysXBorders()
 {
 	//add left box
-	PxBoxGeometry box(10, 2,0.5);
-	PxTransform transform = PxTransform(0, 2, 10);
-	PxRigidStatic*  staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	physx::PxBoxGeometry box(10, 2,0.5);
+	physx::PxTransform transform = physx::PxTransform(0, 2, 10);
+	physx::PxRigidStatic*  staticActor = physx::PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*staticActor);
 
 	//add right box
-	box = PxBoxGeometry(10, 2, 0.5);
-	transform = PxTransform(0, 2, -10);
-	staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	box = physx::PxBoxGeometry(10, 2, 0.5);
+	transform = physx::PxTransform(0, 2, -10);
+	staticActor = physx::PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
 	
 	//add it to the physX scene
 	m_physicsScene->addActor(*staticActor);
 	
 	//add top box
-	box = PxBoxGeometry(0.5, 2, 9.5);
-	transform = PxTransform(-9.5, 2, 0);
-	staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	box = physx::PxBoxGeometry(0.5, 2, 9.5);
+	transform = physx::PxTransform(-9.5, 2, 0);
+	staticActor = physx::PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
 	
 	//add it to the physX scene
 	m_physicsScene->addActor(*staticActor);
 	
 	//add bottom box
-	box = PxBoxGeometry(0.5, 2, 9.5);
-	transform = PxTransform(9.5 , 2, 0);
-	staticActor = PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	box = physx::PxBoxGeometry(0.5, 2, 9.5);
+	transform = physx::PxTransform(9.5 , 2, 0);
+	staticActor = physx::PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
 	
 	//add it to the physX scene
 	m_physicsScene->addActor(*staticActor);

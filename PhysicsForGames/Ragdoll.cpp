@@ -30,7 +30,7 @@ Ragdoll::~Ragdoll()
 {
 }
 
-physx::PxArticulation*  Ragdoll::MakeRagdol(physx::PxPhysics* physics, RagdollNode** nodeArray,
+physx::PxArticulation*  Ragdoll::MakeRagdoll(physx::PxPhysics* physics, RagdollNode** nodeArray,
 	physx::PxTransform worldPos, float scaleFactor,
 	physx::PxMaterial* ragdollMaterial)
 {
@@ -99,9 +99,16 @@ physx::PxArticulation*  Ragdoll::MakeRagdol(physx::PxPhysics* physics, RagdollNo
 			//set the child constraint frame
 			physx::PxTransform thisConstraintFrame = physx::PxTransform(physx::PxVec3
 			(currentNodePtr->childLinkPos * childHalfLength, 0, 0));
-			//set up the poses for the joint
+			//set up the poses for the joint so it is in the correct place
+			joint->setParentPose(parentConstraintFrame);
+			joint->setChildPose(thisConstraintFrame);
+			//set up some constraints to stop it flopping around
+			joint->setStiffness(20);
+			joint->setDamping(20);
+			joint->setSwingLimit(0.4f,0.4f);
+			joint->setTwistLimit(-0.1f, 0.1f);
+			joint->setTwistLimitEnabled(true);
 		}
-
 	}
 	return articulation;
 }

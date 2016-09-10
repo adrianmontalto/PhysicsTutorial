@@ -8,8 +8,6 @@
 #include <PxPhysicsAPI.h>
 #include <PxScene.h>
 
-using namespace physx;
-
 class CustomPhysicsScene;
 
 class Physics : public Application
@@ -17,16 +15,16 @@ class Physics : public Application
 public:
 	CustomPhysicsScene* m_customPhysicsScene;
 	Renderer* m_renderer;
-	PxFoundation* m_physicsFoundation;
-	PxPhysics* m_physics;
-	PxScene* m_physicsScene;
-	PxMaterial* m_physicsMaterial;
-	PxMaterial* m_boxMaterial;
-	PxCooking* m_physicsCooker;
-	PxControllerManager* m_controllerManager;
-	PxDefaultErrorCallback m_defaultErrorCallback;
-	PxDefaultAllocator m_defaultAllocator;
-	PxSimulationFilterShader m_defaultFilterShader = PxDefaultSimulationFilterShader;
+	physx::PxFoundation* m_physicsFoundation;
+	physx::PxPhysics* m_physics;
+	physx::PxScene* m_physicsScene;
+	physx::PxMaterial* m_physicsMaterial;
+	physx::PxMaterial* m_boxMaterial;
+	physx::PxCooking* m_physicsCooker;
+	physx::PxControllerManager* m_controllerManager;
+	physx::PxDefaultErrorCallback m_defaultErrorCallback;
+	physx::PxDefaultAllocator m_defaultAllocator;
+	physx::PxSimulationFilterShader m_defaultFilterShader = physx::PxDefaultSimulationFilterShader;
 	FlyCamera m_camera;
 	class Collision* m_collisionManager;
 	float m_delta_time;
@@ -38,9 +36,9 @@ public:
     virtual bool update();
     virtual void draw();
 
-	void renderGizmos(PxScene* physics_scene);
+	void renderGizmos(physx::PxScene* physics_scene);
 	void SetUpPhysX();
-	PxScene* CreateDefaultScene();
+	physx::PxScene* CreateDefaultScene();
 	void UpDatePhysX(float deltaTime);
 	void SetUpCustomPhysics();
 	void UpdateCustomPhysics();
@@ -55,7 +53,7 @@ public:
 	void AddPhysXBorders();
 };
 
-class MyAllocator : public PxAllocatorCallback
+class MyAllocator : public physx::PxAllocatorCallback
 {
 public:
 	virtual ~MyAllocator() {}
