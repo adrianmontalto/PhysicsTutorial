@@ -51,6 +51,8 @@ public:
 	void CreateDynamicSphere();
 	void AddBlockTower();
 	void AddPhysXBorders();
+	void AddRagDoll();
+	void AddCharacterController();
 };
 
 class MyAllocator : public physx::PxAllocatorCallback

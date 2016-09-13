@@ -413,10 +413,7 @@ void Physics::SetupPhysXScene()
 
 	m_physicsScene->addActor(*plane);
 
-	physx::PxArticulation* ragDollArticulation;
-	//ragDollArticulation = Ragdoll::MakeRagdoll();
-	//m_physicsScene->addArticulation(*ragdoll);
-
+	AddRagDoll();
 	AddPhysXBorders();
 	AddBlockTower();
 }
@@ -534,4 +531,16 @@ void Physics::AddPhysXBorders()
 	
 	//add it to the physX scene
 	m_physicsScene->addActor(*staticActor);
+}
+
+void Physics::AddRagDoll()
+{
+	physx::PxArticulation* ragDollArticulation;
+	ragDollArticulation = Ragdoll::MakeRagdoll(m_physics, ragdollData, physx::PxTransform(physx::PxVec3(0, 0, 0)), 0.1f, m_physicsMaterial);
+	m_physicsScene->addArticulation(*ragDollArticulation);
+}
+
+void Physics::AddCharacterController()
+{
+	
 }
