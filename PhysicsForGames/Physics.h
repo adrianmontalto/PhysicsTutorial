@@ -65,6 +65,9 @@ public:
 	void UpdateCharacterController();
 	void ParticleTestScene();
 	void CreateParticleSystem();
+	physx::PxFilterFlags myFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, 
+										physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, 
+										physx::PxPairFlags& pairFlags, const void* constntBlock, physx::PxU32 constantBlockSize);
 };
 
 class MyAllocator : public physx::PxAllocatorCallback

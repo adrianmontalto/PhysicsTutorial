@@ -12,6 +12,7 @@
 #include "Ragdoll.h"
 #include "MyControllerHitReport.h"
 #include "ParticleFluidEmitter.h"
+#include "MyCollisionCallBack.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -423,6 +424,9 @@ void Physics::SetupPhysXScene()
 {
 	m_physicsScene = CreateDefaultScene();
 
+	physx::PxSimulationEventCallback* mycollisionCallBack = new MyCollisionCallBack();
+	m_physicsScene->setSimulationEventCallback(mycollisionCallBack);
+
 	//add a plane to thge scene
 	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(0, 0, 0), physx::PxQuat((float)physx::PxHalfPi, physx::PxVec3(0, 0, 1)));
 	physx::PxRigidStatic* plane = physx::PxCreateStatic(*m_physics, transform, physx::PxPlaneGeometry(), *m_physicsMaterial);
@@ -709,3 +713,23 @@ void Physics::CreateParticleSystem()
 		m_particleEmitter->setStartVelocityRange(-0.001f, -250.0f, -0.001f, 0.001f, -250.0f, 0.001f);
 	}
  }
+
+physx::PxFilterFlags Physics::myFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0,
+	physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1,
+	physx::PxPairFlags& pairFlags, const void* constntBlock, physx::PxU32 constantBlockSize)
+{
+	//let triggers through
+	if (physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
+	{
+		pairFlags = physx::PxPairFlag::eTRIGGER_DEFAULT;
+		return physx::PxFilterFlag::eDEFAULT;
+	}
+	//generate contacts for all that were not filtered above
+	pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
+	//trigger the contact callback for pairs (A,B) where
+	//the filtermask of A contains the ID of B and vice versa
+	if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND 
+		| physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
+
+	return physx::PxFilterFlag::eDEFAULT;
+}
