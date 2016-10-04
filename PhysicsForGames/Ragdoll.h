@@ -64,7 +64,7 @@ static RagdollNode* ragdollData[] =
 	new RagdollNode(physx::PxQuat(physx::PxPi - 0.3f,physx::PxVec3(0, 0, 1)),LEFT_CLAVICLE,3,1.5,1,-1,"left upper arm"),
 	new RagdollNode(physx::PxQuat(0.3f,physx::PxVec3(0, 0, 1)),RIGHT_CLAVICLE,3,1.5,-1,1,"right upper arm"),
 	new RagdollNode(physx::PxQuat(physx::PxPi - 0.3f,physx::PxVec3(0, 0, 1)),LEFT_UPPER_ARM,3,1,-1,1,"left lower arm"),
-	new RagdollNode(physx::PxQuat(0.3,physx::PxVec3(0, 0, 1)),RIGHT_UPPER_ARM,3,1,-1,1,"right lower arm"),
+	new RagdollNode(physx::PxQuat(0.3f,physx::PxVec3(0.0f, 0.0f, 1.0f)),RIGHT_UPPER_ARM,3,1,-1,1,"right lower arm"),
 	NULL
 };
 

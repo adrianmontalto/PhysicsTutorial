@@ -10,6 +10,7 @@
 #include "SpringJoint.h"
 #include "Collision.h"
 #include "Ragdoll.h"
+#include "MyControllerHitReport.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -33,12 +34,16 @@ bool Physics::startup()
     m_camera.sensitivity = 3;
 	m_ballTimer = 0.0f;
 	m_ballresetTimer = 0.5f;
+	m_characterYVelocity = 0.0f;
+	m_characterRotation = 0.0f;
+	m_playerGravity = 0.0f;
 
 	m_renderer = new Renderer();
 
 	SetUpPhysX();
 	//SetUpIntroductionToPhysx();
 	SetupPhysXScene();
+	SetupCharacterController();
 	//SetupRBDTutorial();
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
@@ -246,6 +251,8 @@ void Physics::UpDatePhysX(float deltaTime)
 			m_ballTimer = m_ballresetTimer;
 		}                		
 	}
+
+	UpdateCharacterController();
 }
 
 void Physics::SetUpCustomPhysics()
@@ -416,6 +423,7 @@ void Physics::SetupPhysXScene()
 	AddRagDoll();
 	AddPhysXBorders();
 	AddBlockTower();
+	AddCharacterController();
 }
 
 void Physics::CreateDynamicSphere()
@@ -445,7 +453,7 @@ void Physics::AddBlockTower()
 {
 	//add a box
 	float density = 10;
-	physx::PxBoxGeometry box(0.3, 0.3,0.3);
+	physx::PxBoxGeometry box(0.3f, 0.3f,0.3f);
 	physx::PxTransform transform(physx::PxVec3(-7,1,0));
 	physx::PxRigidDynamic*  dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
@@ -454,7 +462,7 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	box = physx::PxBoxGeometry(0.3f, 0.3f, 0.3f);
 	transform = physx::PxTransform(physx::PxVec3(-7, 1,-0.75));
 	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
@@ -463,7 +471,7 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	box = physx::PxBoxGeometry(0.3f, 0.3f, 0.3f);
 	transform = physx::PxTransform(physx::PxVec3(-7, 1, -1.5));
 	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
@@ -472,7 +480,7 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	box = physx::PxBoxGeometry(0.3f, 0.3f, 0.3f);
 	transform = physx::PxTransform(physx::PxVec3(-7, 2, -0.5));
 	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
@@ -481,7 +489,7 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	box = physx::PxBoxGeometry(0.3f, 0.3f, 0.3f);
 	transform = physx::PxTransform(physx::PxVec3(-7, 2, -1));
 	dynamicActor = PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
@@ -490,7 +498,7 @@ void Physics::AddBlockTower()
 
 	//add a box
 	density = 10;
-	box = physx::PxBoxGeometry(0.3, 0.3, 0.3);
+	box = physx::PxBoxGeometry(0.3f, 0.3f, 0.3f);
 	transform = physx::PxTransform(physx::PxVec3(-7, 3, -0.75));
 	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
@@ -542,5 +550,90 @@ void Physics::AddRagDoll()
 
 void Physics::AddCharacterController()
 {
+	float density = 10.0f;
+	physx::PxCapsuleGeometry capsule = physx::PxCapsuleGeometry(0.5f,1.0f);
+	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(5, 10, 0));
+	physx::PxRigidDynamic*  dynamicActor = physx::PxCreateDynamic(*m_physics, transform, capsule,*m_physicsMaterial ,density);
+
+	m_physicsScene->addActor(*dynamicActor);
+}
+
+void Physics::SetupCharacterController()
+{
+	myHitReport = new MyControllerHitReport();
+	m_controllerManager = PxCreateControllerManager(*m_physicsScene);
+
+	//describe our controller
+	physx::PxCapsuleControllerDesc desc;
+	desc.height = 1.6f;
+	desc.radius = 0.4f;
+	desc.position.set(0,0,0);
+	desc.material = m_physicsMaterial;
+	desc.reportCallback = myHitReport;//connect it to our collision detection routine
+	desc.density = 10.0f;
+
+	//create the layer controller
+	m_playerController = m_controllerManager->createController(desc);
+	m_playerController->setPosition(physx::PxExtendedVec3(5,0,0));
+
+	//set up some variables to control the player with
+	 m_characterYVelocity = 0; //initialise the character velocity
+	 m_characterRotation = 0;//and rotation
+	 m_playerGravity = -0.5f;//set up player gravity
+
+	myHitReport->clearPlayerContactNormal();//initialise the contact normal(what we are in contact with)
+	m_physicsScene->addActor(*m_playerController->getActor());
+}
+
+void Physics::UpdateCharacterController()
+{
+	bool onGround;//set to true if we are on the ground
+	float movementSpeed = 10.0f;//forward and back movement
+	float rotationSpeed = 1.0f;//turn speed
+	//check if we have a contact normal
+	if (myHitReport->getPlayerContactNormal().y > 0.3f)
+	{
+		m_characterYVelocity = -0.1f;
+		onGround = true;
+	}
+	else
+	{
+		m_characterYVelocity += m_playerGravity * m_delta_time;
+		onGround = false;
+	}
 	
+	myHitReport->clearPlayerContactNormal();
+	const physx::PxVec3 up(0, 1, 0);
+	
+	//scan the keys and set up our intended velocity based on a global transform
+	physx::PxVec3 velocity(0, m_characterYVelocity, 0);
+	if (glfwGetKey(m_window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		velocity.x -= movementSpeed * m_delta_time;
+	}
+	
+	if (glfwGetKey(m_window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		velocity.x += movementSpeed * m_delta_time;
+	}
+
+	if (glfwGetKey(m_window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+		velocity.z += movementSpeed * m_delta_time;
+	}
+
+	if (glfwGetKey(m_window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+		velocity.z -= movementSpeed * m_delta_time;
+	}
+	
+	float minDistance = 0.001f;
+	physx::PxControllerFilters filter;
+	
+	//make controls relative to player facing
+	physx::PxQuat rotation(m_characterRotation,physx::PxVec3(0,1,0));
+	//velocity = physx::PxVec3(0,m_characterYVelocity,0);
+	
+	//move the controller
+	m_playerController->move(rotation.rotate(velocity), minDistance, m_delta_time, filter);
 }

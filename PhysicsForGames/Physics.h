@@ -22,14 +22,19 @@ public:
 	physx::PxMaterial* m_boxMaterial;
 	physx::PxCooking* m_physicsCooker;
 	physx::PxControllerManager* m_controllerManager;
+	physx::PxController* m_playerController;
 	physx::PxDefaultErrorCallback m_defaultErrorCallback;
 	physx::PxDefaultAllocator m_defaultAllocator;
 	physx::PxSimulationFilterShader m_defaultFilterShader = physx::PxDefaultSimulationFilterShader;
 	FlyCamera m_camera;
 	class Collision* m_collisionManager;
+	class MyControllerHitReport* myHitReport;
 	float m_delta_time;
 	float m_ballTimer;
 	float m_ballresetTimer;
+	float m_characterYVelocity;
+	float m_characterRotation;
+	float m_playerGravity;
 
 	virtual bool startup();
 	virtual void shutdown();
@@ -53,6 +58,8 @@ public:
 	void AddPhysXBorders();
 	void AddRagDoll();
 	void AddCharacterController();
+	void SetupCharacterController();
+	void UpdateCharacterController();
 };
 
 class MyAllocator : public physx::PxAllocatorCallback
