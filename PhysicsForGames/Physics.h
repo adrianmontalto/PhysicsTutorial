@@ -7,6 +7,7 @@
 
 #include <PxPhysicsAPI.h>
 #include <PxScene.h>
+#include <vector>
 
 class CustomPhysicsScene;
 
@@ -26,9 +27,11 @@ public:
 	physx::PxDefaultErrorCallback m_defaultErrorCallback;
 	physx::PxDefaultAllocator m_defaultAllocator;
 	physx::PxSimulationFilterShader m_defaultFilterShader = physx::PxDefaultSimulationFilterShader;
+	std::vector<physx::PxRigidStatic*> m_physXActors;
 	FlyCamera m_camera;
 	class Collision* m_collisionManager;
 	class MyControllerHitReport* myHitReport;
+	class ParticleFluidEmitter* m_particleEmitter;
 	float m_delta_time;
 	float m_ballTimer;
 	float m_ballresetTimer;
@@ -60,6 +63,8 @@ public:
 	void AddCharacterController();
 	void SetupCharacterController();
 	void UpdateCharacterController();
+	void ParticleTestScene();
+	void CreateParticleSystem();
 };
 
 class MyAllocator : public physx::PxAllocatorCallback

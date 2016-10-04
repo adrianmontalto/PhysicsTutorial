@@ -11,6 +11,7 @@
 #include "Collision.h"
 #include "Ragdoll.h"
 #include "MyControllerHitReport.h"
+#include "ParticleFluidEmitter.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -49,6 +50,7 @@ bool Physics::startup()
 	//SetUpVisualDebugger();
 	//SetUpCustomPhysics();
 	//SetUpCustomBorders(40.0f, 10.0f, glm::vec4(1, 0, 0, 1));
+	ParticleTestScene();
 	//m_collisionManager = new Collision(m_customPhysicsScene);
     return true;
 }
@@ -252,6 +254,13 @@ void Physics::UpDatePhysX(float deltaTime)
 		}                		
 	}
 
+	if (m_particleEmitter)
+	{
+		m_particleEmitter->update(m_delta_time);
+		//render all our particles
+		m_particleEmitter->renderParticles();
+	}
+
 	UpdateCharacterController();
 }
 
@@ -424,6 +433,7 @@ void Physics::SetupPhysXScene()
 	AddPhysXBorders();
 	AddBlockTower();
 	AddCharacterController();
+	CreateParticleSystem();
 }
 
 void Physics::CreateDynamicSphere()
@@ -544,7 +554,7 @@ void Physics::AddPhysXBorders()
 void Physics::AddRagDoll()
 {
 	physx::PxArticulation* ragDollArticulation;
-	ragDollArticulation = Ragdoll::MakeRagdoll(m_physics, ragdollData, physx::PxTransform(physx::PxVec3(0, 0, 0)), 0.1f, m_physicsMaterial);
+	ragDollArticulation = Ragdoll::MakeRagdoll(m_physics, ragdollData, physx::PxTransform(physx::PxVec3(5.0f, 0.0f,5.0f)), 0.1f, m_physicsMaterial);
 	m_physicsScene->addArticulation(*ragDollArticulation);
 }
 
@@ -637,3 +647,65 @@ void Physics::UpdateCharacterController()
 	//move the controller
 	m_playerController->move(rotation.rotate(velocity), minDistance, m_delta_time, filter);
 }
+
+void Physics::ParticleTestScene()
+{
+
+	physx::PxTransform pose = physx::PxTransform(physx::PxVec3(0.0f, 0.0f, 0.0f), 
+							  physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0.0f, 0.0f, 1.0f)));
+
+	physx::PxRigidStatic* plane = physx::PxCreateStatic(*m_physics,pose,physx::PxPlaneGeometry(),
+								  *m_physicsMaterial);
+
+	const physx::PxU32 numShapes = plane->getNbShapes();
+	m_physicsScene->addActor(*plane);
+
+	physx::PxBoxGeometry side1(4.5f, 1.0f, 0.5f);
+	physx::PxBoxGeometry side2(0.5f,1.0f,4.5f);
+	pose = physx::PxTransform(physx::PxVec3(0.0f, 0.5f, 4.0f));
+	physx::PxRigidStatic* box = physx::PxCreateStatic(*m_physics, pose, side1, *m_physicsMaterial);
+
+	m_physicsScene->addActor(*box);
+	m_physXActors.push_back(box);
+
+	pose = physx::PxTransform(physx::PxVec3(0.0f, 0.5f, -4.0f));
+	box = PxCreateStatic(*m_physics, pose, side1, *m_physicsMaterial);
+	m_physicsScene->addActor(*box);
+	m_physXActors.push_back(box);
+
+	pose = physx::PxTransform(physx::PxVec3(4.0f, 0.5f, 0.0f));
+	box = physx::PxCreateStatic(*m_physics, pose, side2,*m_physicsMaterial);
+	m_physicsScene->addActor(*box);
+	m_physXActors.push_back(box);
+
+	pose = physx::PxTransform(physx::PxVec3(-4.0f, 0.5f, 0.0f));
+	box = physx::PxCreateStatic(*m_physics, pose, side2, *m_physicsMaterial);
+	m_physicsScene->addActor(*box);
+	m_physXActors.push_back(box);
+}
+
+void Physics::CreateParticleSystem()
+{
+	physx::PxParticleFluid* pf;
+
+	//create particle system in PhysX SDK
+	//set immutable properties.
+	physx::PxU32 maxParticles = 4000;
+	bool perParticleRestOffset = false;
+	pf = m_physics->createParticleFluid(maxParticles, perParticleRestOffset);
+	pf->setRestParticleDistance(0.3f);
+	pf->setDynamicFriction(0.1f);
+	pf->setStaticFriction(0.1f);
+	pf->setDamping(0.1f);
+	pf->setParticleMass(0.1f);
+	pf->setRestitution(0);
+	pf->setParticleBaseFlag(physx::PxParticleBaseFlag::eCOLLISION_TWOWAY,true);
+	pf->setStiffness(100);
+
+	if (pf)
+	{
+		m_physicsScene->addActor(*pf);
+		m_particleEmitter = new ParticleFluidEmitter(maxParticles, physx::PxVec3(0.0f, 10.0f, 0.0f), pf, 0.1f);
+		m_particleEmitter->setStartVelocityRange(-0.001f, -250.0f, -0.001f, 0.001f, -250.0f, 0.001f);
+	}
+ }
