@@ -4,6 +4,7 @@
 #include "physx\PxRigidActor.h"
 #include "physx\PxActor.h"
 
+void My
 void MyCollisionCallBack::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
 {
 	for (physx::PxU32 i = 0; i < nbPairs; ++i)

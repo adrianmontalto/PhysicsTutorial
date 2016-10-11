@@ -39,10 +39,12 @@ bool Physics::startup()
 	m_characterYVelocity = 0.0f;
 	m_characterRotation = 0.0f;
 	m_playerGravity = 0.0f;
+	m_isFluid = false;
 
 	m_renderer = new Renderer();
 
 	SetUpPhysX();
+	CreateDefaultScene();
 	//SetUpIntroductionToPhysx();
 	SetupPhysXScene();
 	SetupCharacterController();
@@ -50,7 +52,7 @@ bool Physics::startup()
 	//SetUpTutorial1();
 	//SetUpVisualDebugger();
 	//SetUpCustomPhysics();
-	//SetUpCustomBorders(40.0f, 10.0f, glm::vec4(1, 0, 0, 1));
+	//SetUpCustomBorders(20.0f, 5.0f, glm::vec4(0.2,1,0.5, 1));
 	ParticleTestScene();
 	//m_collisionManager = new Collision(m_customPhysicsScene);
     return true;
@@ -230,7 +232,8 @@ physx::PxScene* Physics::CreateDefaultScene()
 {
 	physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
 	sceneDesc.gravity = physx::PxVec3(0, -9.807f, 0);
-	sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
+	//sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
+	sceneDesc.filterShader = myFilterShader;
 	sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 	physx::PxScene* result = m_physics->createScene(sceneDesc);
 
@@ -257,9 +260,12 @@ void Physics::UpDatePhysX(float deltaTime)
 
 	if (m_particleEmitter)
 	{
-		m_particleEmitter->update(m_delta_time);
-		//render all our particles
-		m_particleEmitter->renderParticles();
+		if (m_isFluid)
+		{
+			m_particleEmitter->update(m_delta_time);
+			//render all our particles
+			m_particleEmitter->renderParticles();
+		}
 	}
 
 	UpdateCharacterController();
@@ -274,34 +280,34 @@ void Physics::SetUpCustomPhysics()
 
 	//add sphere to scene
 	Sphere* newBall;
-	newBall = new Sphere(glm::vec3(-5,0,0),glm::vec3(2,0,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
+	newBall = new Sphere(glm::vec3(-5,0,30),glm::vec3(2,0,0),3.0f,1.0f,glm::vec4(1,1,0,1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 	
-	newBall = new Sphere(glm::vec3(5,0,0), glm::vec3(-2,0,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
+	newBall = new Sphere(glm::vec3(5,0,30), glm::vec3(-2,0,0), 3.0f, 1.0f, glm::vec4(1, 0, 0, 1),false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 	
-	newBall = new Sphere(glm::vec3(-5,0,-10), glm::vec3(2, 0, 0), 3.0f, 1.0f, glm::vec4(0, 1, 0, 1), false);
+	newBall = new Sphere(glm::vec3(-5,0,20), glm::vec3(2, 0, 0), 3.0f, 1.0f, glm::vec4(0, 1, 0, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 	
-	newBall = new Sphere(glm::vec3(5,0,-10), glm::vec3(-2, 0, 0), 3.0f, 1.0f, glm::vec4(0, 0, 1, 1), false);
+	newBall = new Sphere(glm::vec3(5,0,20), glm::vec3(-2, 0, 0), 3.0f, 1.0f, glm::vec4(0, 0, 1, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	AABB* newAABB;
-	newAABB = new AABB(glm::vec3(0,1,0),glm::vec3(1,1,1),glm::vec4(0,1,0,1),10.0f,true);
+	newAABB = new AABB(glm::vec3(0,1,30),glm::vec3(1,1,1),glm::vec4(0,1,0,1),10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 	
-	newAABB = new AABB(glm::vec3(-10,1,5),glm::vec3(1,1,1),glm::vec4(1,0,0,1),10.0f,false);
+	newAABB = new AABB(glm::vec3(-10,1,35),glm::vec3(1,1,1),glm::vec4(1,0,0,1),10.0f,false);
 	newAABB->SetVelocity(glm::vec3(1,0,0));
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 	
-	newAABB = new AABB(glm::vec3(10,1,5),glm::vec3(1,1,1),glm::vec4(0,0,1,1),10.0f,false);
+	newAABB = new AABB(glm::vec3(10,1,35),glm::vec3(1,1,1),glm::vec4(0,0,1,1),10.0f,false);
 	newAABB->SetVelocity(glm::vec3(-1, 0, 0));
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 
-	newAABB = new AABB(glm::vec3(0,10,-12), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1),10.0f,true);
+	newAABB = new AABB(glm::vec3(0,10,18), glm::vec3(1, 1, 1), glm::vec4(0.25, 0.7, 0.5, 1),10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newAABB);
 
-	newBall = new Sphere(glm::vec3(0,5,-12), glm::vec3(0,0,0), 30.0f, 1.0f, glm::vec4(0.7, 0.2, 0.3, 1), false);
+	newBall = new Sphere(glm::vec3(0,5,18), glm::vec3(0,0,0), 30.0f, 1.0f, glm::vec4(0.7, 0.2, 0.3, 1), false);
 	m_customPhysicsScene->AddPhysicsObject(newBall);
 
 	SpringJoint* newSpringJoint;
@@ -309,12 +315,8 @@ void Physics::SetUpCustomPhysics()
 	m_customPhysicsScene->AddPhysicsObject(newSpringJoint);
 
 	Plane* newPlane;
-	newPlane = new Plane(glm::vec3(0,-2,0),glm::vec3(0,1,0),glm::vec4(1,1,1,1),0.0f,20.0f,true);
+	newPlane = new Plane(glm::vec3(0,-2,22),glm::vec3(0,1,0),glm::vec4(1,1,1,1),0.0f,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newPlane);
-
-	//newPlane = new Plane(glm::vec3(0,10,0),glm::vec3(0,-1,0), glm::vec4(1, 0, 0, 1), 0.0f,0.0f,true);
-
-	//m_customPhysicsScene->AddPhysicsObject(newPlane);
 }
 
 void Physics::UpdateCustomPhysics()
@@ -325,22 +327,22 @@ void Physics::UpdateCustomPhysics()
 
 void Physics::SetUpCustomBorders(float tableSize, float borderHeight, glm::vec4 colour)
 {
-	glm::vec3 position = glm::vec3(0, 0.5f, (tableSize / 2) + 1);
+	glm::vec3 position = glm::vec3(0, 0.5f, (tableSize / 2) + 22);
 	glm::vec3 extent = glm::vec3(tableSize / 2, borderHeight, 1);
 	AABB* newBox = new AABB(position,extent,colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 
-	position = glm::vec3(0,0.5f,(-tableSize / 2) - 1);
+	position = glm::vec3(0,0.5f,(-tableSize / 2) + 22);
 	extent = glm::vec3(tableSize / 2, borderHeight, 1);
 	newBox = new AABB(position, extent, colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 	
-	position = glm::vec3((tableSize / 2) - 1, 0.5f, 0);
+	position = glm::vec3((tableSize / 2) - 1, 0.5f, 22);
 	extent = glm::vec3(1,borderHeight,tableSize/2);
 	newBox = new AABB(position, extent, colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
 	
-	position = glm::vec3((-tableSize / 2) + 1, 0.5f, 0);
+	position = glm::vec3((-tableSize / 2) + 1, 0.5f, 22);
 	extent = glm::vec3(1, borderHeight, tableSize / 2);
 	newBox = new AABB(position, extent, colour,10.0f,true);
 	m_customPhysicsScene->AddPhysicsObject(newBox);
@@ -437,6 +439,7 @@ void Physics::SetupPhysXScene()
 	AddPhysXBorders();
 	AddBlockTower();
 	AddCharacterController();
+	AddCollisionTrigger();
 	CreateParticleSystem();
 }
 
@@ -518,6 +521,17 @@ void Physics::AddBlockTower()
 
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
+
+	//add a box
+	density = 10;
+	box = physx::PxBoxGeometry(0.9f, 0.5f, 0.9f);
+	transform = physx::PxTransform(physx::PxVec3(8, 3, -9));
+	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
+
+	setupFiltering(dynamicActor, FilterGroup::ePLATFORM, FilterGroup::ePLAYER);
+	//SetShapeAsTrigger(dynamicActor);
+	//add it to the physX scene
+	m_physicsScene->addActor(*dynamicActor);
 }
 
 void Physics::AddPhysXBorders()
@@ -566,10 +580,32 @@ void Physics::AddCharacterController()
 {
 	float density = 10.0f;
 	physx::PxCapsuleGeometry capsule = physx::PxCapsuleGeometry(0.5f,1.0f);
-	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(5, 10, 0));
+	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(5, 20, -7));
 	physx::PxRigidDynamic*  dynamicActor = physx::PxCreateDynamic(*m_physics, transform, capsule,*m_physicsMaterial ,density);
-
+	dynamicActor->setName("player");
+	setupFiltering(dynamicActor, FilterGroup::ePLAYER, FilterGroup::ePLATFORM);
 	m_physicsScene->addActor(*dynamicActor);
+}
+
+void Physics::AddCollisionTrigger()
+{
+	float density = 10.0f;
+	physx::PxCapsuleGeometry capsule = physx::PxCapsuleGeometry(0.5f, 1.0f);
+	physx::PxTransform transform = physx::PxTransform(physx::PxVec3(7, 7, 7));
+	physx::PxRigidActor* playerActor = physx::PxCreateDynamic(*m_physics, transform, capsule, *m_physicsMaterial, density);
+	playerActor->setName("Player");
+	m_physicsScene->addActor(*playerActor);
+
+	density = 5.0f;
+
+	physx::PxBoxGeometry box = physx::PxBoxGeometry(0.5f, 0.5f, 0.5f);
+	transform = physx::PxTransform(physx::PxVec3(7, 7, -7));
+	physx::PxRigidActor* triggerBox = physx::PxCreateStatic(*m_physics, transform, box, *m_physicsMaterial);
+	triggerBox->setName("triggerBox");
+
+	setupFiltering(triggerBox, FilterGroup::ePLATFORM, FilterGroup::ePLAYER);
+	SetShapeAsTrigger(triggerBox);
+	m_physicsScene->addActor(*triggerBox);
 }
 
 void Physics::SetupCharacterController()
@@ -714,9 +750,51 @@ void Physics::CreateParticleSystem()
 	}
  }
 
+void Physics::setupFiltering(physx::PxRigidActor* actor, physx::PxU32 filterGroup, physx::PxU32 filterMask)
+{
+	physx::PxFilterData filterData;
+	filterData.word0 = filterGroup;//word0 = own ID
+	filterData.word1 = filterMask;//word1 = ID mask to filter pairs that trigger a contact callback
+
+	const physx::PxU32 numShapes = actor->getNbShapes();
+	physx::PxShape** shapes = (physx::PxShape**)_aligned_malloc(sizeof(physx::PxShape*)*numShapes, 16);
+	actor->getShapes(shapes,numShapes);
+	for (physx::PxU32 i = 0; i < numShapes; ++i)
+	{
+		physx::PxShape* shape = shapes[i];
+		shape->setSimulationFilterData(filterData);
+	}
+	_aligned_free(shapes);
+}
+
+void Physics::SetShapeAsTrigger(physx::PxRigidActor* actorIn)
+{
+	physx::PxRigidStatic* staticActor = actorIn->is<physx::PxRigidStatic>();
+	assert(staticActor);
+
+	const physx::PxU32 numShapes = staticActor->getNbShapes();
+	physx::PxShape** shapes = (physx::PxShape**)_aligned_malloc(sizeof(physx::PxShape*)*numShapes, 16);
+	staticActor->getShapes(shapes, numShapes);
+	for (physx::PxU32 i = 0; i < numShapes; ++i)
+	{
+		shapes[i]->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE,false);
+		shapes[i]->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE,true);
+	}
+}
+
+void Physics::SetFluid(bool set)
+{
+	m_isFluid = set;
+}
+
+bool Physics::GetFluid()
+{
+	return m_isFluid;
+}
+
 physx::PxFilterFlags Physics::myFilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0,
 	physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1,
-	physx::PxPairFlags& pairFlags, const void* constntBlock, physx::PxU32 constantBlockSize)
+	physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)
 {
 	//let triggers through
 	if (physx::PxFilterObjectIsTrigger(attributes0) || physx::PxFilterObjectIsTrigger(attributes1))
