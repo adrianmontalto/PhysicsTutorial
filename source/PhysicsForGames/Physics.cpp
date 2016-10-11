@@ -45,16 +45,12 @@ bool Physics::startup()
 
 	SetUpPhysX();
 	CreateDefaultScene();
-	//SetUpIntroductionToPhysx();
 	SetupPhysXScene();
 	SetupCharacterController();
-	//SetupRBDTutorial();
-	//SetUpTutorial1();
-	//SetUpVisualDebugger();
-	//SetUpCustomPhysics();
-	//SetUpCustomBorders(20.0f, 5.0f, glm::vec4(0.2,1,0.5, 1));
+	SetUpCustomPhysics();
+	SetUpCustomBorders(20.0f, 5.0f, glm::vec4(0.2,1,0.5, 1));
 	ParticleTestScene();
-	//m_collisionManager = new Collision(m_customPhysicsScene);
+	m_collisionManager = new Collision(m_customPhysicsScene);
     return true;
 }
 
@@ -95,8 +91,8 @@ bool Physics::update()
 	renderGizmos(m_physicsScene);
     m_camera.update(1.0f / 60.0f);
 	UpDatePhysX(m_delta_time);
-	//UpdateCustomPhysics();
-	//m_collisionManager->CheckForCustomCollision();
+	UpdateCustomPhysics();
+	m_collisionManager->CheckForCustomCollision();
     return true;
 }
 
@@ -232,7 +228,6 @@ physx::PxScene* Physics::CreateDefaultScene()
 {
 	physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
 	sceneDesc.gravity = physx::PxVec3(0, -9.807f, 0);
-	//sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
 	sceneDesc.filterShader = myFilterShader;
 	sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 	physx::PxScene* result = m_physics->createScene(sceneDesc);
@@ -519,17 +514,6 @@ void Physics::AddBlockTower()
 	transform = physx::PxTransform(physx::PxVec3(-7, 3, -0.75));
 	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
 
-	//add it to the physX scene
-	m_physicsScene->addActor(*dynamicActor);
-
-	//add a box
-	density = 10;
-	box = physx::PxBoxGeometry(0.9f, 0.5f, 0.9f);
-	transform = physx::PxTransform(physx::PxVec3(8, 3, -9));
-	dynamicActor = physx::PxCreateDynamic(*m_physics, transform, box, *m_physicsMaterial, density);
-
-	setupFiltering(dynamicActor, FilterGroup::ePLATFORM, FilterGroup::ePLAYER);
-	//SetShapeAsTrigger(dynamicActor);
 	//add it to the physX scene
 	m_physicsScene->addActor(*dynamicActor);
 }
